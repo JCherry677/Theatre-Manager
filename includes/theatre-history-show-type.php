@@ -26,10 +26,10 @@ function theatre_history_show_type(){
         'labels' => $labels,
         'description'   => 'Contains information about past shows',
         'public'        => true,
-        'menu_position' => 5,
+        'menu_position' => 30,
         'supports'      => array( 'title', 'editor', 'excerpt', 'comments', 'revisions' ),
         'rewrite'       => array('slug' => 'shows'),
-        'show_in_rest'  => true, //true => Gutenberg editor, false => old editor
+        'show_in_rest'  => false, //true => Gutenberg editor, false => old editor
         'has_archive'   => true,
     );
 
@@ -110,11 +110,33 @@ function create_show_taxonomies(){
 		'labels'            => $labels,
 		'show_ui'           => true,
         'show_admin_column' => true,
-        'show_in_rest'      => true, //true => Gutenberg editor, false => old editor
+        'show_in_rest'      => false, //true => Gutenberg editor, false => old editor
 		'query_var'         => true,
 		'rewrite'           => array( 'slug' => 'season' ),
     );
     register_taxonomy( 'season', array( 'theatre_show' ), $args );
+
+    $labels = array(
+        'name'              => _x( 'Venue', 'taxonomy general name' ),
+        'singular_name'     => _x( 'Venue', 'taxonomy singular name' ),
+        'search_items'      => __( 'Search Venues' ),
+        'all_items'         => __( 'All Venues' ),
+        'edit_item'         => __( 'Edit Venue' ),
+        'update_item'       => __( 'Update Venue' ),
+        'add_new_item'      => __( 'Add New Venue' ),
+        'new_item_name'     => __( 'New Venue Name' ),
+        'menu_name'         => __( 'Venues' ),
+    );
+    $args = array(
+		'hierarchical'      => false,
+		'labels'            => $labels,
+		'show_ui'           => true,
+        'show_admin_column' => true,
+        'show_in_rest'      => false, //true => Gutenberg editor, false => old editor
+		'query_var'         => true,
+		'rewrite'           => array( 'slug' => 'venue' ),
+    );
+    register_taxonomy( 'venue', array( 'theatre_show' ), $args );
 }
 add_action( 'init', 'create_show_taxonomies', 0 );
 
@@ -148,15 +170,11 @@ function theatre_history_show_info_meta(){
 }
 
 //HTML representation of the box
-function theatre_history_show_info_box(){?>
-
-<?php wp_nonce_field( basename( __FILE__ ), 'theatre_history_show_info_nonce' ); ?>
-<p>
-    <label for="theatre-history-show-info"><?php _e("First Performance Date")?></label>
-    <br>
-    <input class="" type="date" name="theatre-history-show-info" id="theatre-history-show-info" value="<?php echo esc_attr(get_post_meta($post->ID, 'theatre_history_show_info', true ));?>" size="30"/>
-</p>
-<?php }
+function theatre_history_show_info_box($post){
+    $value = get_post_meta($post->ID, 'theatre_history_show_info', true );
+    wp_nonce_field( basename( __FILE__ ), 'theatre_history_show_info_nonce' );
+    include plugin_dir_path( __FILE__ ) . 'forms/show-info-form.php';
+}
 
 //saving metadata 
 function theatre_history_show_info_save( $post_id, $post ) {
@@ -165,35 +183,21 @@ function theatre_history_show_info_save( $post_id, $post ) {
     if ( !isset( $_POST['theatre_history_show_info_nonce'] ) || !wp_verify_nonce( $_POST['theatre_history_show_info_nonce'], basename( __FILE__ ) ) )
       return $post_id;
   
-    /* Get the post type object. */
-    $post_type = get_post_type_object( $post->post_type );
-  
-    /* Check if the current user has permission to edit the post. */
-    if ( !current_user_can( $post_type->cap->edit_post, $post_id ) )
-      return $post_id;
-  
-    /* Get the posted data and sanitize it for use as an HTML class. */
-    $new_meta_value = ( isset( $_POST['theatre-history-show-info'] ) ? sanitize_html_class( $_POST['theatre-history-show-info'] ) : ’ );
-  
-    /* Get the meta key. */
-    $meta_key = 'theatre_history_show_info';
-  
-    /* Get the meta value of the custom field key. */
-    $meta_value = get_post_meta( $post_id, $meta_key, true );
-  
-    /* If a new meta value was added and there was no previous value, add it. */
-    if ( $new_meta_value && ’ == $meta_value )
-      add_post_meta( $post_id, $meta_key, $new_meta_value, true );
-  
-    /* If the new meta value does not match the old value, update it. */
-    elseif ( $new_meta_value && $new_meta_value != $meta_value )
-      update_post_meta( $post_id, $meta_key, $new_meta_value );
-  
-    /* If there is no new meta value but an old value exists, delete it. */
-    elseif ( ’ == $new_meta_value && $meta_value )
-      delete_post_meta( $post_id, $meta_key, $meta_value );
-}
+    $fields = [
+        'th_show_info_author',
+        'th_show_info_start_date',
+        'th_show_info_end_date',
+    ];
 
+    foreach ( $fields as $field ) {
+        if ( array_key_exists( $field, $_POST ) ) {
+            update_post_meta( $post_id, $field, sanitize_text_field( $_POST[$field] ) );
+        }
+        else {
+            add_post_meta( $post_id, $field, sanitize_text_field( $_POST[$field] ), true);
+        }
+    }
+}
 
 add_action( 'load-post.php', 'theatre_history_meta_boxes_setup' );
 add_action( 'load-post-new.php', 'theatre_history_meta_boxes_setup' );
