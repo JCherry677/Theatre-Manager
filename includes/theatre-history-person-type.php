@@ -114,10 +114,10 @@ function theatre_history_person_info_save( $post_id, $post ) {
 
     /* Verify the nonce before proceeding. */
     if ( !isset( $_POST['theatre_history_person_info_nonce'] ) || !wp_verify_nonce( $_POST['theatre_history_person_info_nonce'], basename( __FILE__ ) ) )
-      return;
+        return;
   
-      if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE)
-      return;
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE)
+        return;
 
     //if (!current_user_can('edit_post', $post_id))
     //    return;

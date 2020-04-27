@@ -27,7 +27,7 @@ function theatre_history_show_type(){
         'description'   => 'Contains information about past shows',
         'public'        => true,
         'menu_position' => 30,
-        'supports'      => array( 'title', 'editor', 'excerpt', 'comments', 'revisions' ),
+        'supports'      => array( 'title', 'editor', 'comments', 'revisions' ),
         'rewrite'       => array('slug' => 'shows'),
         'show_in_rest'  => false, //true => Gutenberg editor, false => old editor
         'has_archive'   => true,
@@ -35,8 +35,9 @@ function theatre_history_show_type(){
 
     register_post_type('theatre_show', $args);
 }
-add_action('init', 'theatre_history_show_type');
 
+
+//------------------------------------------------------------------------------------------
 /**
  * Show update messages.
  * @since 0.1
@@ -60,8 +61,7 @@ function theatre_history_show_messages( $messages ) {
       10 => sprintf( __('Show draft updated. <a target="_blank" href="%s">Preview show</a>'), esc_url( add_query_arg( 'preview', 'true', get_permalink($post_ID) ) ) ),
     );
     return $messages;
-  }
-add_filter( 'post_updated_messages', 'theatre_history_show_messages' );
+}
 
 /**
  * display contextual help for Shows
@@ -81,9 +81,9 @@ function theatre_history_contextual_help( $contextual_help, $screen_id, $screen 
   
     }
     return $contextual_help;
-  }
-add_action( 'contextual_help', 'theatre_history_contextual_help', 10, 3 );
+}
 
+//------------------------------------------------------------------------------------------
 /**
  * Add custom taxonomies
  * 
@@ -138,9 +138,8 @@ function create_show_taxonomies(){
     );
     register_taxonomy( 'venue', array( 'theatre_show' ), $args );
 }
-add_action( 'init', 'create_show_taxonomies', 0 );
 
-
+//------------------------------------------------------------------------------------------
 /**
  * Create Meta boxes
  * 
@@ -152,9 +151,13 @@ function theatre_history_show_meta_boxes_setup(){
 
     //show info
     add_action('add_meta_boxes', 'theatre_history_show_info_meta');
+    add_action('add_meta_boxes', 'theatre_history_show_person_meta');
+    add_action('add_meta_boxes', 'theatre_history_show_crew_meta');
 
     //save data
     add_action('save_post', 'theatre_history_show_info_save', 10, 2);
+    add_action('save_post', 'theatre_history_show_person_save', 10, 2);
+    add_action('save_post', 'theatre_history_show_crew_save', 10, 2);
 }
 
 //info meta box controller
@@ -178,10 +181,12 @@ function theatre_history_show_info_box($post){
 
 //saving metadata 
 function theatre_history_show_info_save( $post_id, $post ) {
-
     /* Verify the nonce before proceeding. */
     if ( !isset( $_POST['theatre_history_show_info_nonce'] ) || !wp_verify_nonce( $_POST['theatre_history_show_info_nonce'], basename( __FILE__ ) ) )
-      return $post_id;
+        return $post_id;
+    
+    if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
+        return;
   
     $fields = [
         'th_show_info_author',
@@ -199,5 +204,121 @@ function theatre_history_show_info_save( $post_id, $post ) {
     }
 }
 
+//------------------------------------------------------------------------------------------
+/** 
+ * person meta box controller
+ * @since 0.2
+ */
+function theatre_history_show_person_meta(){
+    add_meta_box(
+        'theatre-history-show-person', //ID
+        'Cast', //Title TODO: Internationalisation
+        'theatre_history_show_person_box', //callback function
+        'theatre_show', //post type
+        'normal', //on-page location
+        'core' //priority
+    );
+}
+
+function theatre_history_show_person_box($post, $args){
+    wp_nonce_field( plugin_basename( __FILE__ ), 'theatre_history_show_person_nonce' );
+    include plugin_dir_path( __FILE__ ) . 'forms/show-person-form.php';
+}
+
+function theatre_history_show_person_save($post_id, $post){
+    // Don't wanna save this now, right?
+    if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
+        return;
+    if ( !isset( $_POST['theatre_history_show_person_nonce'] ) )
+        return;
+    if ( !wp_verify_nonce( $_POST['theatre_history_show_person_nonce'], plugin_basename( __FILE__ ) ) )
+        return;
+
+    // We do want to save? Ok!
+    $old = get_post_meta($post_id, 'th_show_person_info_data', true);
+    $new = array();
+
+    $actors = $_POST['actor'];
+    $roles = $_POST['role'];
+
+    $count = count( $actors );
+
+    for ( $i = 0; $i < $count; $i++ ) {
+        if ( $roles[$i] != '' ) :
+            $new[$i]['role'] = stripslashes( strip_tags( $roles[$i] ) );
+
+            if ( $actors[$i] == '' )
+                $new[$i]['actor'] = '';
+            else
+                $new[$i]['actor'] = stripslashes( $actors[$i] ); // and however you want to sanitize
+        endif;
+    }
+    if ( $new != $old )
+        update_post_meta( $post_id, 'th_show_person_info_data', $new );
+    else
+      add_post_meta( $post_id, 'th_show_person_info_data', $new );
+}
+
+//------------------------------------------------------------------------------------------
+/**
+ * crew meta box controller
+ * @since 0.2
+ */
+function theatre_history_show_crew_meta(){
+    add_meta_box(
+        'theatre-history-show-crew', //ID
+        'Production Team', //Title TODO: Internationalisation
+        'theatre_history_show_crew_box', //callback function
+        'theatre_show', //post type
+        'normal', //on-page location
+        'core' //priority
+    );
+}
+
+function theatre_history_show_crew_box($post, $args){
+    wp_nonce_field( plugin_basename( __FILE__ ), 'theatre_history_show_crew_nonce' );
+    include plugin_dir_path( __FILE__ ) . 'forms/show-crew-form.php';
+}
+
+function theatre_history_show_crew_save($post_id, $post){
+    // Don't wanna save this now, right?
+    if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
+        return;
+    if ( !isset( $_POST['theatre_history_show_crew_nonce'] ) )
+        return;
+    if ( !wp_verify_nonce( $_POST['theatre_history_show_crew_nonce'], plugin_basename( __FILE__ ) ) )
+        return;
+
+    // We do want to save? Ok!
+    $old = get_post_meta($post_id, 'th_show_crew_info_data', true);
+    $new = array();
+
+    $persons = $_POST['pos'];
+    $roles = $_POST['role'];
+
+    $count = count( $persons );
+
+    for ( $i = 0; $i < $count; $i++ ) {
+        if ( $roles[$i] != '' ) :
+            $new[$i]['role'] = stripslashes( strip_tags( $roles[$i] ) );
+
+            if ( $persons[$i] == '' )
+                $new[$i]['pos'] = '';
+            else
+                $new[$i]['pos'] = stripslashes( $persons[$i] ); // and however you want to sanitize
+        endif;
+    }
+    if ( $new != $old )
+        update_post_meta( $post_id, 'th_show_crew_info_data', $new );
+    else
+      add_post_meta( $post_id, 'th_show_crew_info_data', $new );
+}
+
+//------------------------------------------------------------------------------------------
+//Add Actions/filters
+add_action( 'init', 'theatre_history_show_type' );
+add_action( 'init', 'create_show_taxonomies', 0 );
+add_filter( 'post_updated_messages', 'theatre_history_show_messages' );
+add_action( 'contextual_help', 'theatre_history_contextual_help', 10, 3 );
 add_action( 'load-post.php', 'theatre_history_show_meta_boxes_setup' );
 add_action( 'load-post-new.php', 'theatre_history_show_meta_boxes_setup' );
