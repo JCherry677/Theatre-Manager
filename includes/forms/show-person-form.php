@@ -1,8 +1,8 @@
 <script type="text/javascript">
     jQuery(document).ready(function( $ ){
         $( '#add-row' ).on('click', function() {
-            var row = $( '.empty-row.screen-reader-text' ).clone(true);
-            row.removeClass( 'empty-row screen-reader-text' );
+            var row = $( '.empty-cast-row.screen-reader-text' ).clone(true);
+            row.removeClass( 'empty-cast-row screen-reader-text' );
             row.insertBefore( '#repeatable-fieldset-one tbody>tr:last' );
             return false;
         });
@@ -105,7 +105,7 @@
                 endif; ?>
 
                 <!-- empty hidden one for jQuery -->
-                <tr class="empty-row screen-reader-text">
+                <tr class="empty-cast-row screen-reader-text">
                     <td><input type="text" class="widefat" name="role[]" /></td>
                     <td><?php 
                         echo "<select id='th_show_person' name='actor[]'>";

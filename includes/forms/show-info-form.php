@@ -1,7 +1,7 @@
 <div class="th_show_info">
     <style scoped>
         .th_show_info{
-            width: 33%;
+            width: 50%;
             display: flex;
             flex-direction: column;
             flex-wrap: wrap;

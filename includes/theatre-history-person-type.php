@@ -35,10 +35,9 @@ function theatre_history_person_type(){
 
     register_post_type('theatre_person', $args);
 }
-add_action('init', 'theatre_history_person_type');
 
 /**
- * perspn update messages.
+ * person update messages.
  * @since 0.2
  * 
  * @param array $messages Existing post update messages.
@@ -60,9 +59,27 @@ function theatre_history_person_messages( $messages ) {
       10 => sprintf( __('Member draft updated. <a target="_blank" href="%s">Preview member</a>'), esc_url( add_query_arg( 'preview', 'true', get_permalink($post_ID) ) ) ),
     );
     return $messages;
-  }
-add_filter( 'post_updated_messages', 'theatre_history_person_messages' );
+}
 
+/**
+ * display contextual help for People
+ * @since 0.3
+ */
+function theatre_history_person_contextual_help( $contextual_help, $screen_id, $screen ) { 
+    if ( 'show' == $screen->id ) {
+  
+      $contextual_help = '<h2>Members</h2>
+      <p>Members list all members that we know about! You can see a list of them on this page in reverse chronological order - the latest one we added is first.</p> 
+      <p>You can view the details of each member by clicking on its name, or you can perform bulk actions using the dropdown menu and selecting multiple items.</p>';
+  
+    } elseif ( 'edit-show' == $screen->id ) {
+  
+      $contextual_help = '<h2>Editing Members</h2>
+      <p>This page allows you to view/modify Member details. Please make sure to fill out the available boxes with the appropriate details (Title, Author, Cast) and <strong>not</strong> add these details to the show description.</p>';
+  
+    }
+    return $contextual_help;
+}
 
 /**
  * Create Meta boxes
@@ -91,20 +108,10 @@ function theatre_history_person_info_meta(){
         'core' //priority
     );
 }
-function theatre_history_person_info_box_option(){
-    $options = array (
-        'Option 1' => 'option1',
-        'Option 2' => 'option2',
-        'Option 3' => 'option3',
-        'Option 4' => 'option4',
-    );
-    return $options;
-}
+
 //HTML representation of the box
 function theatre_history_person_info_box($post){
     //$value = get_post_meta($post->ID, 'theatre_history_person_info', true );
-    
-    $options = theatre_history_person_info_box_option();
     wp_nonce_field( basename( __FILE__ ), 'theatre_history_person_info_nonce' );
     include plugin_dir_path( __FILE__ ) . 'forms/person-info-form.php';
 }
@@ -124,7 +131,6 @@ function theatre_history_person_info_save( $post_id, $post ) {
 
     $old = get_post_meta($post_id, 'th_person_info_data', true);
     $new = array();
-    $options = theatre_history_person_info_box_option();
 
     $courses = $_POST['course'];
     $grads = $_POST['grad'];
@@ -147,5 +153,8 @@ function theatre_history_person_info_save( $post_id, $post ) {
       delete_post_meta( $post_id, 'th_person_info_data', $old );
 }
 
+add_action('init', 'theatre_history_person_type');
+add_filter( 'post_updated_messages', 'theatre_history_person_messages' );
+add_action( 'contextual_help', 'theatre_history_person_contextual_help', 10, 3 );
 add_action( 'load-post.php', 'theatre_history_person_meta_boxes_setup' );
 add_action( 'load-post-new.php', 'theatre_history_person_meta_boxes_setup' );

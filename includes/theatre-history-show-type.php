@@ -28,7 +28,7 @@ function theatre_history_show_type(){
         'public'        => true,
         'menu_position' => 30,
         'supports'      => array( 'title', 'editor', 'comments', 'revisions' ),
-        'rewrite'       => array('slug' => 'shows'),
+        'rewrite'       => array('slug' => 'show'),
         'show_in_rest'  => false, //true => Gutenberg editor, false => old editor
         'has_archive'   => true,
     );
@@ -116,6 +116,7 @@ function create_show_taxonomies(){
     );
     register_taxonomy( 'season', array( 'theatre_show' ), $args );
 
+    //Venue taxonomy - hierarchical
     $labels = array(
         'name'              => _x( 'Venue', 'taxonomy general name' ),
         'singular_name'     => _x( 'Venue', 'taxonomy singular name' ),
@@ -128,7 +129,7 @@ function create_show_taxonomies(){
         'menu_name'         => __( 'Venues' ),
     );
     $args = array(
-		'hierarchical'      => false,
+		'hierarchical'      => true,
 		'labels'            => $labels,
 		'show_ui'           => true,
         'show_admin_column' => true,
@@ -153,11 +154,13 @@ function theatre_history_show_meta_boxes_setup(){
     add_action('add_meta_boxes', 'theatre_history_show_info_meta');
     add_action('add_meta_boxes', 'theatre_history_show_person_meta');
     add_action('add_meta_boxes', 'theatre_history_show_crew_meta');
+    add_action('add_meta_boxes', 'theatre_history_show_review_meta');
 
     //save data
     add_action('save_post', 'theatre_history_show_info_save', 10, 2);
     add_action('save_post', 'theatre_history_show_person_save', 10, 2);
     add_action('save_post', 'theatre_history_show_crew_save', 10, 2);
+    add_action('save_post', 'theatre_history_show_review_save', 10, 2);
 }
 
 //info meta box controller
@@ -253,10 +256,10 @@ function theatre_history_show_person_save($post_id, $post){
                 $new[$i]['actor'] = stripslashes( $actors[$i] ); // and however you want to sanitize
         endif;
     }
-    if ( $new != $old )
+    if ( !empty( $new ) && $new != $old )
         update_post_meta( $post_id, 'th_show_person_info_data', $new );
-    else
-      add_post_meta( $post_id, 'th_show_person_info_data', $new );
+    elseif ( empty($new) && $old )
+        delete_post_meta( $post_id, 'th_show_person_info_data', $old );
 }
 
 //------------------------------------------------------------------------------------------
@@ -294,13 +297,13 @@ function theatre_history_show_crew_save($post_id, $post){
     $new = array();
 
     $persons = $_POST['pos'];
-    $roles = $_POST['role'];
+    $jobs = $_POST['job'];
 
     $count = count( $persons );
 
     for ( $i = 0; $i < $count; $i++ ) {
-        if ( $roles[$i] != '' ) :
-            $new[$i]['role'] = stripslashes( strip_tags( $roles[$i] ) );
+        if ( $jobs[$i] != '' ) :
+            $new[$i]['job'] = stripslashes( strip_tags( $jobs[$i] ) );
 
             if ( $persons[$i] == '' )
                 $new[$i]['pos'] = '';
@@ -308,14 +311,76 @@ function theatre_history_show_crew_save($post_id, $post){
                 $new[$i]['pos'] = stripslashes( $persons[$i] ); // and however you want to sanitize
         endif;
     }
-    if ( $new != $old )
+    if ( !empty( $new ) && $new != $old )
         update_post_meta( $post_id, 'th_show_crew_info_data', $new );
-    else
-      add_post_meta( $post_id, 'th_show_crew_info_data', $new );
+    elseif ( empty($new) && $old )
+        delete_post_meta( $post_id, 'th_show_crew_info_data', $old );
 }
 
 //------------------------------------------------------------------------------------------
-//Add Actions/filters
+/**
+ * Reviews meta box 
+ * @since 0.3
+ */
+function theatre_history_show_review_meta(){
+    add_meta_box(
+        'theatre-history-show-review', //ID
+        'Reviews', //Title TODO: Internationalisation
+        'theatre_history_show_review_box', //callback function
+        'theatre_show', //post type
+        'normal', //on-page location
+        'core' //priority
+    );
+}
+
+//HTML representation of the box
+function theatre_history_show_review_box($post){
+    wp_nonce_field( basename( __FILE__ ), 'theatre_history_show_review_nonce' );
+    include plugin_dir_path( __FILE__ ) . 'forms/show-review-form.php';
+}
+
+//saving metadata 
+function theatre_history_show_review_save( $post_id, $post ) {
+
+    /* Verify the nonce before proceeding. */
+    if ( !isset( $_POST['theatre_history_show_review_nonce'] ) || !wp_verify_nonce( $_POST['theatre_history_show_review_nonce'], basename( __FILE__ ) ) )
+        return;
+  
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE)
+        return;
+
+    //if (!current_user_can('edit_post', $post_id))
+    //    return;
+
+    $old = get_post_meta($post_id, 'th_show_review_data', true);
+    $new = array();
+
+    $reviewers = $_POST['reviewer'];
+    $links = $_POST['link'];
+
+    $count = count( $reviewers );
+
+    for ( $i = 0; $i < $count; $i++ ) {
+        if ( $reviewers[$i] != '' ) :
+            $new[$i]['reviewer'] = stripslashes( strip_tags( $reviewers[$i] ) );
+
+            if ( $links[$i] == '' )
+                $new[$i]['link'] = '';
+            else
+                $new[$i]['link'] = stripslashes( $links[$i] ); // and however you want to sanitize
+        endif;
+    }
+    if ( !empty( $new ) && $new != $old )
+        update_post_meta( $post_id, 'th_show_review_data', $new );
+    elseif ( empty($new) && $old )
+        delete_post_meta( $post_id, 'th_show_review_data', $old );
+}
+
+//------------------------------------------------------------------------------------------
+/** 
+ * Add Actions/filters
+ * @since 0.1
+ */
 add_action( 'init', 'theatre_history_show_type' );
 add_action( 'init', 'create_show_taxonomies', 0 );
 add_filter( 'post_updated_messages', 'theatre_history_show_messages' );

@@ -1,9 +1,9 @@
 <script type="text/javascript">
     jQuery(document).ready(function( $ ){
-        $( '#add-row' ).on('click', function() {
-            var row = $( '.empty-person-row.screen-reader-text' ).clone(true);
-            row.removeClass( 'empty-row screen-reader-text' );
-            row.insertBefore( '#repeatable-fieldset-one tbody>tr:last' );
+        $( '#add-review-row' ).on('click', function() {
+            var row = $( '.empty-review-row.screen-reader-text' ).clone(true);
+            row.removeClass( 'empty-review-row screen-reader-text' );
+            row.insertBefore( '#repeatable-fieldset-three tbody>tr:last' );
             return false;
         });
 
@@ -54,45 +54,45 @@
 </style>
 <div class="th_person_info_row">
     <div class="th_person_info">
-        <h2 class="nomargin">Course History</h2>
         <div class="th_person_info_field">
-            <table id="repeatable-fieldset-one" width="100%">
+            <table id="repeatable-fieldset-three" width="100%">
             <thead>
                 <tr>
-                    <th width="40%">Course</th>
-                    <th width="40%">Graduation Year</th>
+                    <th width="40%">Reviewer</th>
+                    <th width="40%">Link to Review</th>
                     <th width="8%"></th>
                 </tr>
             </thead>
             <tbody>
             <?php
-            $repeatable_fields = get_post_meta($post->ID, 'th_person_info_data', true);
+            $repeatable_fields = get_post_meta($post->ID, 'th_show_review_data', true);
             if ( $repeatable_fields ) :
 
             foreach ( $repeatable_fields as $field ) {
-            ?>
-            <tr>
-                <td><input type="text" class="widefat" name="course[]" value="<?php if($field['course'] != '') echo esc_attr( $field['course'] ); ?>" /></td>
+                ?>
+                <tr>
+                    <td><input type="text" class="widefat" name="reviewer[]" value="<?php if($field['reviewer'] != '') echo esc_attr( $field['reviewer'] ); ?>" /></td>
 
-                <td><input type="text" class="widefat" name="grad[]" value="<?php if ($field['grad'] != '') echo esc_attr( $field['grad'] ); else echo 'http://'; ?>" /></td>
+                    <td><input type="url" class="widefat" name="link[]" value="<?php if ($field['link'] != '') echo esc_attr( $field['link'] ); ?>" /></td>
 
-                <td><a class="button remove-row" href="#">Remove</a></td>
-            </tr>
-            <?php
-            } endif; ?>
+                    <td><a class="button remove-row" href="#">Remove</a></td>
+                </tr>
+                <?php
+                } 
+            endif; ?>
 
             <!-- empty hidden one for jQuery -->
-            <tr class="empty-person-row screen-reader-text">
-                <td><input type="text" class="widefat" name="course[]" /></td>
+            <tr class="empty-review-row screen-reader-text">
+                <td><input type="text" class="widefat" name="reviewer[]" /></td>
 
-                <td><input type="text" class="widefat" name="grad[]" value="" /></td>
+                <td><input type="url" class="widefat" name="link[]" value="" /></td>
 
                 <td><a class="button remove-row" href="#">Remove</a></td>
             </tr>
             </tbody>
             </table>
 
-            <p><a id="add-row" class="button" href="#">Add Course</a></p>
+            <p><a id="add-review-row" class="button" href="#">Add Review</a></p>
         </div>
     </div>
 </div>

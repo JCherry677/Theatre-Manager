@@ -63,7 +63,7 @@
         <table id="repeatable-fieldset-two" width="100%">
             <thead>
                 <tr>
-                    <th width="40%">Role</th>
+                    <th width="40%">Position</th>
                     <th width="40%">Person</th>
                     <th width="8%"></th>
                 </tr>
@@ -79,7 +79,7 @@
                     }
                 ?>
                 <tr>
-                    <td><input type="text" class="widefat" name="role[]" value="<?php echo esc_attr( $field['role'] ); ?>" /></td>
+                    <td><input type="text" class="widefat" name="job[]" value="<?php echo esc_attr( $field['job'] ); ?>" /></td>
                     <td><?php 
                         echo "<select id='th_show_crew' name='pos[]'>";
                         // Query the authors here
@@ -106,7 +106,7 @@
 
                 <!-- empty hidden one for jQuery -->
                 <tr class="empty-row screen-crew-text">
-                    <td><input type="text" class="widefat" name="role[]" /></td>
+                    <td><input type="text" class="widefat" name="job[]" /></td>
                     <td><?php 
                         echo "<select id='th_show_crew' name='pos[]'>";
                         // Query the authors here

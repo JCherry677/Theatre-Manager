@@ -5,7 +5,7 @@
  * @wordpress-plugin
  * Plugin Name: Theatre History
  * Description: A plugin to archive old theatrical productions, storing infomation about who was involved.
- * Version: 0.2
+ * Version: 0.3
  * Requires at least: 5.4
  * Requires PHP: 7.4
  * Author: John
@@ -23,6 +23,7 @@ if ( ! defined( 'ABSPATH' )) die;
 //show custom type
 require_once(dirname(__FILE__) . '/includes/theatre-history-show-type.php');
 require_once(dirname(__FILE__) . '/includes/theatre-history-person-type.php');
+
 
 /**
  * Add separator in admin menu
