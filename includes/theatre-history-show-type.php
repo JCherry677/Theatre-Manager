@@ -89,6 +89,10 @@ function theatre_history_contextual_help( $contextual_help, $screen_id, $screen 
  * 
  * taxonomy - show season
  * @since 0.1
+ * taxonomy - show venue
+ * @since 0.1
+ * taxonomy - show type
+ * @since 0.5
  */
 function create_show_taxonomies(){
     //season taxonomy - hierarchical
@@ -138,6 +142,29 @@ function create_show_taxonomies(){
 		'rewrite'           => array( 'slug' => 'venue' ),
     );
     register_taxonomy( 'venue', array( 'theatre_show' ), $args );
+
+    //Venue taxonomy - hierarchical
+    $labels = array(
+        'name'              => _x( 'Show Type', 'taxonomy general name' ),
+        'singular_name'     => _x( 'Show Type', 'taxonomy singular name' ),
+        'search_items'      => __( 'Search Types' ),
+        'all_items'         => __( 'All Types' ),
+        'edit_item'         => __( 'Edit Type' ),
+        'update_item'       => __( 'Update Type' ),
+        'add_new_item'      => __( 'Add New Type' ),
+        'new_item_name'     => __( 'New Type Name' ),
+        'menu_name'         => __( 'Show Types' ),
+    );
+    $args = array(
+		'hierarchical'      => true,
+		'labels'            => $labels,
+		'show_ui'           => true,
+        'show_admin_column' => true,
+        'show_in_rest'      => false, //true => Gutenberg editor, false => old editor
+		'query_var'         => true,
+		'rewrite'           => array( 'slug' => 'type' ),
+    );
+    register_taxonomy( 'show_type', array( 'theatre_show' ), $args );
 }
 
 //------------------------------------------------------------------------------------------
@@ -308,13 +335,13 @@ function theatre_history_show_crew_save($post_id, $post){
     $count = count( $persons );
 
     for ( $i = 0; $i < $count; $i++ ) {
-        if ( $persons[$i] != '' ) :
-            $new[$i]['pos'] = stripslashes( strip_tags( $persons[$i] ) );
+        if ( $jobs[$i] != '' ) :
+            $new[$i]['job'] = stripslashes( strip_tags( $jobs[$i] ) );
 
-            if ( $jobs[$i] == '' )
-                $new[$i]['job'] = '';
+            if ( $persons[$i] == '' )
+                $new[$i]['pos'] = '';
             else
-                $new[$i]['job'] = stripslashes( $jobs[$i] ); // and however you want to sanitize
+                $new[$i]['pos'] = stripslashes( $persons[$i] ); // and however you want to sanitize
         endif;
     }
     if ( !empty( $new ) && $new != $old )
@@ -397,6 +424,71 @@ function add_admin_menu_separator() {
     4 => 'wp-menu-separator'
     );
 }
+
+//------------------------------------------------------------------------------------------
+/**
+ * Show Shortcode
+ * Returns show data
+ * @since 0.5
+ */
+function theatre_history_show_shortcode() {
+    $author = get_post_meta(get_the_ID(), 'th_show_info_author', true);
+    $start = implode(" ", get_post_meta(get_the_ID(), 'th_show_info_start_date'));
+    $end = implode(" ", get_post_meta(get_the_ID(), 'th_show_info_end_date'));
+    $cast = get_post_meta(get_the_ID(), 'th_show_person_info_data');
+    $crew = get_post_meta(get_the_ID(), 'th_show_crew_info_data');
+    $reviews = get_post_meta(get_the_ID(), 'th_show_review_data');
+    //basic data
+    $data = "<table><tbody>
+            <tr><td>Playwrite</td><td>" . $author . "</td></tr>
+            <tr><td>Date</td><td>" . $start . " - " . $end . "</td></tr>";
+    //cast data
+    $data = $data . "<tr><td>Cast</td><td><table><tbody>";
+    $casttext = "";
+    foreach ( $cast as $field ) {
+        foreach ($field as $item){
+            $casttext = $casttext . "<tr><td>" . theatre_history_show_person_lookup($item['actor']) . " as " . $item['role'] . "</td></tr>";
+        }
+    }
+    $data = $data . $casttext . "</tbody></table></td></tr>";
+    //crew data
+    $data = $data . "<tr><td>Crew</td><td><table><tbody>";
+    $casttext = "";
+    foreach ( $crew as $field ) {
+        foreach ($field as $item){
+            $casttext = $casttext . "<tr><td>" . theatre_history_show_person_lookup($item['pos']) . " as " . $item['job'] . "</td></tr>";
+        }
+    }
+    $data = $data . $casttext . "</tbody></table></td></tr>";
+    //Reviews
+    $data = $data . "<tr><td>Reviews</td><td><table><tbody>";
+    $casttext = "";
+    foreach ( $reviews as $field ) {
+        foreach ($field as $item){
+            $casttext = $casttext . "<tr><td><a href=\"" . $item['link'] . "\"> ". $item['reviewer'] . " reviewed this!</a></td></tr>";
+        }
+    }
+    $data = $data . $casttext . "</tbody></table></td></tr>";
+    //return all
+    return $data . "</tbody></table>";
+}
+
+function theatre_history_show_person_lookup($name_id){
+    $query = new WP_Query( 'post_type=theatre_person' );
+    while ( $query->have_posts() ) {
+        $query->the_post();
+        $id = get_the_ID();
+        if($id == $name_id){
+            return get_the_title();
+        }
+    }
+}
+
+/**
+ * Add Shortcodes
+ * @since 0.5
+ */
+add_shortcode( 'show_data', 'theatre_history_show_shortcode' );
 
 //------------------------------------------------------------------------------------------
 /** 
