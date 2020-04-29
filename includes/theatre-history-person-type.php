@@ -36,6 +36,7 @@ function theatre_history_person_type(){
     register_post_type('theatre_person', $args);
 }
 
+//------------------------------------------------------------------------------------------
 /**
  * person update messages.
  * @since 0.2
@@ -61,6 +62,7 @@ function theatre_history_person_messages( $messages ) {
     return $messages;
 }
 
+//------------------------------------------------------------------------------------------
 /**
  * display contextual help for People
  * @since 0.3
@@ -81,6 +83,7 @@ function theatre_history_person_contextual_help( $contextual_help, $screen_id, $
     return $contextual_help;
 }
 
+//------------------------------------------------------------------------------------------
 /**
  * Create Meta boxes
  * 
@@ -111,7 +114,6 @@ function theatre_history_person_info_meta(){
 
 //HTML representation of the box
 function theatre_history_person_info_box($post){
-    //$value = get_post_meta($post->ID, 'theatre_history_person_info', true );
     wp_nonce_field( basename( __FILE__ ), 'theatre_history_person_info_nonce' );
     include plugin_dir_path( __FILE__ ) . 'forms/person-info-form.php';
 }

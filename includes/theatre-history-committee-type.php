@@ -1,0 +1,170 @@
+<?php
+/**
+ * Custom Type - committee member
+ * @since 0.4
+ */
+
+function theatre_history_committee_type(){
+    $labels = array(
+        'name'               => __( 'Past Committees', 'post type general name' ),
+        'singular_name'      => __( 'Committee', 'post type singular name' ),
+        'add_new'            => __( 'Add New', 'Committee' ),
+        'add_new_item'       => __( 'Add New Committee' ),
+        'edit_item'          => __( 'Edit Committee' ),
+        'new_item'           => __( 'New Committee' ),
+        'all_items'          => __( 'All committees' ),
+        'view_item'          => __( 'View Committee' ),
+        'search_items'       => __( 'Search committees' ),
+        'not_found'          => __( 'No committees  found' ),
+        'not_found_in_trash' => __( 'No committees  found in the Trash' ), 
+        'parent_item_colon'  => '’',
+        'menu_name'          => 'Committee',
+    );
+
+    $args = array(
+        'labels' => $labels,
+        'description'   => 'Contains information about our past committee shows',
+        'public'        => true,
+        'menu_position' => 40,
+        'supports'      => array( 'title', 'revisions'),
+        'rewrite'       => array('slug' => 'committee'),
+        'show_in_rest'  => false, //true => Gutenberg editor, false => old editor
+        'has_archive'   => true,
+    );
+
+    register_post_type('theatre_committee', $args);
+}
+
+//------------------------------------------------------------------------------------------
+/**
+ * committee update messages.
+ * @since 0.4
+ * 
+ * @param array $messages Existing post update messages.
+ * @return array Amended post update messages with new CPT update messages.
+ */
+function theatre_history_committee_messages( $messages ) {
+    global $post, $post_ID;
+    $messages['theatre_committee'] = array(
+      0 => '’', 
+      1 => sprintf( __('Committee updated. <a href="%s">View committee</a>'), esc_url( get_permalink($post_ID) ) ),
+      2 => __('Custom field updated.'),
+      3 => __('Custom field deleted.'),
+      4 => __('Committee updated.'),
+      5 => isset($_GET['revision']) ? sprintf( __('Committee restored to revision from %s'), wp_post_revision_title( (int) $_GET['revision'], false ) ) : false,
+      6 => sprintf( __('Committee published. <a href="%s">View committee</a>'), esc_url( get_permalink($post_ID) ) ),
+      7 => __('Committee saved.'),
+      8 => sprintf( __('Committee submitted. <a target="_blank" href="%s">Preview committee</a>'), esc_url( add_query_arg( 'preview', 'true', get_permalink($post_ID) ) ) ),
+      9 => sprintf( __('Committee scheduled for: <strong>%1$s</strong>. <a target="_blank" href="%2$s">Preview committee</a>'), date_i18n( __( 'M j, Y @ G:i' ), strtotime( $post->post_date ) ), esc_url( get_permalink($post_ID) ) ),
+      10 => sprintf( __('Committee draft updated. <a target="_blank" href="%s">Preview committee</a>'), esc_url( add_query_arg( 'preview', 'true', get_permalink($post_ID) ) ) ),
+    );
+    return $messages;
+}
+
+//------------------------------------------------------------------------------------------
+/**
+ * display contextual help for committee
+ * @since 0.4
+ */
+function theatre_history_committee_contextual_help( $contextual_help, $screen_id, $screen ) { 
+    if ( 'show' == $screen->id ) {
+  
+      $contextual_help = '<h2>Committees</h2>
+      <p>Committees list all committee members that we know about! You can see a list of them on this page in reverse chronological order - the latest one we added is first.</p> 
+      <p>You can view the details of each committee by clicking on its name, or you can perform bulk actions using the dropdown menu and selecting multiple items.</p>';
+  
+    } elseif ( 'edit-show' == $screen->id ) {
+  
+      $contextual_help = '<h2>Editing Members</h2>
+      <p>This page allows you to view/modify committee details. The title of the committee should be the season the committee applies to, but every position in the committee doesn\'t have to be filled</p>';
+  
+    }
+    return $contextual_help;
+}
+
+//------------------------------------------------------------------------------------------
+/**
+ * Change title text
+ * @since 0.4
+ */
+
+function theatre_history_committee_enter_title( $input ) {
+    if ( 'theatre_committee' === get_post_type() ) {
+        return __( 'Committee Season', 'your_textdomain' );
+    }
+
+    return $input;
+}
+
+//------------------------------------------------------------------------------------------
+/**
+ * Create Meta boxes
+ * 
+ * meta - committee Info
+ * @since 0.4
+ */
+function theatre_history_committee_meta_boxes_setup(){
+    //boxes
+    add_action('add_meta_boxes', 'theatre_history_committee_member_meta');
+    //saves
+    add_action('save_post', 'theatre_history_committee_member_save', 10, 2);
+}
+
+function theatre_history_committee_member_meta(){
+    add_meta_box(
+        'theatre-history-committee-member', //ID
+        'Committee Members', //Title TODO: Internationalisation
+        'theatre_history_committee_member_box', //callback function
+        'theatre_committee', //post type
+        'normal', //on-page location
+        'core' //priority
+    );
+}
+
+function theatre_history_committee_member_box($post, $args){
+    wp_nonce_field( plugin_basename( __FILE__ ), 'theatre_history_committee_member_nonce' );
+    include plugin_dir_path( __FILE__ ) . 'forms/committee-member-form.php';
+}
+
+function theatre_history_committee_member_save($post_id, $post){
+    // Don't wanna save this now, right?
+    if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
+        return;
+    if ( !isset( $_POST['theatre_history_committee_member_nonce'] ) )
+        return;
+    if ( !wp_verify_nonce( $_POST['theatre_history_committee_member_nonce'], plugin_basename( __FILE__ ) ) )
+        return;
+
+    // We do want to save? Ok!
+    $old = get_post_meta($post_id, 'th_committee_member_data', true);
+    $new = array();
+
+    $members = $_POST['member'];
+    $postitions = $_POST['postition'];
+
+    $count = count( $members );
+
+    for ( $i = 0; $i < $count; $i++ ) {
+        if ( $postitions[$i] != '' ) :
+            $new[$i]['postition'] = stripslashes( strip_tags( $postitions[$i] ) );
+
+            if ( $members[$i] == '' )
+                $new[$i]['member'] = '';
+            else
+                $new[$i]['member'] = stripslashes( $members[$i] ); // and however you want to sanitize
+        endif;
+    }
+    if ( !empty( $new ) && $new != $old )
+        update_post_meta( $post_id, 'th_committee_member_data', $new );
+    elseif ( empty($new) && $old )
+        delete_post_meta( $post_id, 'th_committee_member_data', $old );
+}
+
+//-----------------------------------------------------------------------------------------
+//Actions
+add_action('init', 'theatre_history_committee_type');
+add_filter( 'post_updated_messages', 'theatre_history_committee_messages' );
+add_action( 'contextual_help', 'theatre_history_committee_contextual_help', 10, 3 );
+add_action( 'load-post.php', 'theatre_history_committee_meta_boxes_setup' );
+add_action( 'load-post-new.php', 'theatre_history_committee_meta_boxes_setup' );
+add_filter( 'enter_title_here', 'theatre_history_committee_enter_title' );

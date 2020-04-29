@@ -28,14 +28,13 @@ function theatre_history_show_type(){
         'public'        => true,
         'menu_position' => 30,
         'supports'      => array( 'title', 'editor', 'comments', 'revisions' ),
-        'rewrite'       => array('slug' => 'show'),
+        'rewrite'       => array('slug' => 'shows'),
         'show_in_rest'  => false, //true => Gutenberg editor, false => old editor
         'has_archive'   => true,
     );
 
     register_post_type('theatre_show', $args);
 }
-
 
 //------------------------------------------------------------------------------------------
 /**
@@ -63,6 +62,7 @@ function theatre_history_show_messages( $messages ) {
     return $messages;
 }
 
+//------------------------------------------------------------------------------------------
 /**
  * display contextual help for Shows
  * @since 0.1
@@ -114,7 +114,7 @@ function create_show_taxonomies(){
 		'query_var'         => true,
 		'rewrite'           => array( 'slug' => 'season' ),
     );
-    register_taxonomy( 'season', array( 'theatre_show' ), $args );
+    register_taxonomy( 'season', array( 'theatre_show', 'theatre_committee' ), $args );
 
     //Venue taxonomy - hierarchical
     $labels = array(
@@ -146,6 +146,12 @@ function create_show_taxonomies(){
  * 
  * meta - Show Info
  * @since 0.1
+ * meta - Show person(cast)
+ * @since 0.2
+ * meta - Show crew
+ * @since 0.2
+ * meta - Show Reviews
+ * @since 0.3
  */
 
 function theatre_history_show_meta_boxes_setup(){
@@ -302,13 +308,13 @@ function theatre_history_show_crew_save($post_id, $post){
     $count = count( $persons );
 
     for ( $i = 0; $i < $count; $i++ ) {
-        if ( $jobs[$i] != '' ) :
-            $new[$i]['job'] = stripslashes( strip_tags( $jobs[$i] ) );
+        if ( $persons[$i] != '' ) :
+            $new[$i]['pos'] = stripslashes( strip_tags( $persons[$i] ) );
 
-            if ( $persons[$i] == '' )
-                $new[$i]['pos'] = '';
+            if ( $jobs[$i] == '' )
+                $new[$i]['job'] = '';
             else
-                $new[$i]['pos'] = stripslashes( $persons[$i] ); // and however you want to sanitize
+                $new[$i]['job'] = stripslashes( $jobs[$i] ); // and however you want to sanitize
         endif;
     }
     if ( !empty( $new ) && $new != $old )
@@ -376,6 +382,22 @@ function theatre_history_show_review_save( $post_id, $post ) {
         delete_post_meta( $post_id, 'th_show_review_data', $old );
 }
 
+/**
+ * Add separator in admin menu
+ * @since 0.2
+ */
+function add_admin_menu_separator() {
+    global $menu;
+    $position = 25;
+    $menu[ $position ] = array(
+    0 => '',
+    1 => 'read',
+    2 => 'separator' . $position,
+    3 => '',
+    4 => 'wp-menu-separator'
+    );
+}
+
 //------------------------------------------------------------------------------------------
 /** 
  * Add Actions/filters
@@ -383,6 +405,7 @@ function theatre_history_show_review_save( $post_id, $post ) {
  */
 add_action( 'init', 'theatre_history_show_type' );
 add_action( 'init', 'create_show_taxonomies', 0 );
+add_action( 'admin_init', 'add_admin_menu_separator' );
 add_filter( 'post_updated_messages', 'theatre_history_show_messages' );
 add_action( 'contextual_help', 'theatre_history_contextual_help', 10, 3 );
 add_action( 'load-post.php', 'theatre_history_show_meta_boxes_setup' );
