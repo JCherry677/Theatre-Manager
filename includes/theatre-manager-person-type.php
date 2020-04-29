@@ -5,7 +5,7 @@
  */
 
 //create person type
-function theatre_history_person_type(){
+function theatre_manager_person_type(){
     $labels = array(
         'name'               => __( 'Members', 'post type general name' ),
         'singular_name'      => __( 'Member', 'post type singular name' ),
@@ -44,7 +44,7 @@ function theatre_history_person_type(){
  * @param array $messages Existing post update messages.
  * @return array Amended post update messages with new CPT update messages.
  */
-function theatre_history_person_messages( $messages ) {
+function theatre_manager_person_messages( $messages ) {
     global $post, $post_ID;
     $messages['theatre_person'] = array(
       0 => '’', 
@@ -67,7 +67,7 @@ function theatre_history_person_messages( $messages ) {
  * display contextual help for People
  * @since 0.3
  */
-function theatre_history_person_contextual_help( $contextual_help, $screen_id, $screen ) { 
+function theatre_manager_person_contextual_help( $contextual_help, $screen_id, $screen ) { 
     if ( 'show' == $screen->id ) {
   
       $contextual_help = '<h2>Members</h2>
@@ -91,21 +91,21 @@ function theatre_history_person_contextual_help( $contextual_help, $screen_id, $
  * @since 0.2
  */
 
-function theatre_history_person_meta_boxes_setup(){
+function theatre_manager_person_meta_boxes_setup(){
 
     //person info
-    add_action('add_meta_boxes', 'theatre_history_person_info_meta');
+    add_action('add_meta_boxes', 'theatre_manager_person_info_meta');
 
     //save data
-    add_action('save_post', 'theatre_history_person_info_save', 10, 2);
+    add_action('save_post', 'theatre_manager_person_info_save', 10, 2);
 }
 
 //info meta box controller
-function theatre_history_person_info_meta(){
+function theatre_manager_person_info_meta(){
     add_meta_box(
-        'theatre-history-person-info', //ID
+        'theatre-manager-person-info', //ID
         'Your Information', //Title TODO: Internationalisation
-        'theatre_history_person_info_box', //callback function
+        'theatre_manager_person_info_box', //callback function
         'theatre_person', //post type
         'normal', //on-page location
         'core' //priority
@@ -113,16 +113,16 @@ function theatre_history_person_info_meta(){
 }
 
 //HTML representation of the box
-function theatre_history_person_info_box($post){
-    wp_nonce_field( basename( __FILE__ ), 'theatre_history_person_info_nonce' );
+function theatre_manager_person_info_box($post){
+    wp_nonce_field( basename( __FILE__ ), 'theatre_manager_person_info_nonce' );
     include plugin_dir_path( __FILE__ ) . 'forms/person-info-form.php';
 }
 
 //saving metadata 
-function theatre_history_person_info_save( $post_id, $post ) {
+function theatre_manager_person_info_save( $post_id, $post ) {
 
     /* Verify the nonce before proceeding. */
-    if ( !isset( $_POST['theatre_history_person_info_nonce'] ) || !wp_verify_nonce( $_POST['theatre_history_person_info_nonce'], basename( __FILE__ ) ) )
+    if ( !isset( $_POST['theatre_manager_person_info_nonce'] ) || !wp_verify_nonce( $_POST['theatre_manager_person_info_nonce'], basename( __FILE__ ) ) )
         return;
   
     if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE)
@@ -155,8 +155,8 @@ function theatre_history_person_info_save( $post_id, $post ) {
       delete_post_meta( $post_id, 'th_person_info_data', $old );
 }
 
-add_action('init', 'theatre_history_person_type');
-add_filter( 'post_updated_messages', 'theatre_history_person_messages' );
-add_action( 'contextual_help', 'theatre_history_person_contextual_help', 10, 3 );
-add_action( 'load-post.php', 'theatre_history_person_meta_boxes_setup' );
-add_action( 'load-post-new.php', 'theatre_history_person_meta_boxes_setup' );
+add_action('init', 'theatre_manager_person_type');
+add_filter( 'post_updated_messages', 'theatre_manager_person_messages' );
+add_action( 'contextual_help', 'theatre_manager_person_contextual_help', 10, 3 );
+add_action( 'load-post.php', 'theatre_manager_person_meta_boxes_setup' );
+add_action( 'load-post-new.php', 'theatre_manager_person_meta_boxes_setup' );

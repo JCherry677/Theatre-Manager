@@ -3,15 +3,15 @@
  * @package theatrehistory
  * 
  * @wordpress-plugin
- * Plugin Name: Theatre History
- * Description: A plugin to archive old theatrical productions, storing infomation about who was involved.
+ * Plugin Name: Theatre Manager
+ * Description: A plugin to manage theatrical productions, storing infomation about who is involved. Can also be used as an archive
  * Version: 0.5
  * Requires at least: 5.4
  * Requires PHP: 7.4
  * Author: John
  * License: GPLv2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
- * text domain: theatre-history
+ * text domain: theatre-manager
  * Domain Path: /lang
  */
 
@@ -21,9 +21,9 @@ if ( ! defined( 'ABSPATH' )) die;
 
 //fetch relevant pages
 //show custom type
-require_once(dirname(__FILE__) . '/includes/theatre-history-show-type.php');
-require_once(dirname(__FILE__) . '/includes/theatre-history-person-type.php');
-require_once(dirname(__FILE__) . '/includes/theatre-history-committee-type.php');
+require_once(dirname(__FILE__) . '/includes/theatre-manager-show-type.php');
+require_once(dirname(__FILE__) . '/includes/theatre-manager-person-type.php');
+require_once(dirname(__FILE__) . '/includes/theatre-manager-committee-type.php');
 
 
 /**
@@ -32,14 +32,14 @@ require_once(dirname(__FILE__) . '/includes/theatre-history-committee-type.php')
  */
 
 //activate plugin
-function theatre_history_activate(){
+function theatre_manager_activate(){
     // Clear the permalinks after the post type has been registered.
     flush_rewrite_rules(); 
 }
-register_activation_hook( __FILE__, 'theatre_history_activate');
+register_activation_hook( __FILE__, 'theatre_manager_activate');
 
 //deactivate plugin
-function theatre_history_deactivate() {
+function theatre_manager_deactivate() {
     // Unregister the post type, so the rules are no longer in memory.
     unregister_post_type( 'theatre_show' );
     unregister_post_type( 'theatre_member' );
@@ -47,4 +47,4 @@ function theatre_history_deactivate() {
     // Clear the permalinks to remove our post type's rules from the database.
     flush_rewrite_rules();
 }
-register_deactivation_hook( __FILE__, 'theatre_history_deactivate' );
+register_deactivation_hook( __FILE__, 'theatre_manager_deactivate' );

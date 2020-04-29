@@ -4,7 +4,7 @@
  * @since 0.4
  */
 
-function theatre_history_committee_type(){
+function theatre_manager_committee_type(){
     $labels = array(
         'name'               => __( 'Past Committees', 'post type general name' ),
         'singular_name'      => __( 'Committee', 'post type singular name' ),
@@ -43,7 +43,7 @@ function theatre_history_committee_type(){
  * @param array $messages Existing post update messages.
  * @return array Amended post update messages with new CPT update messages.
  */
-function theatre_history_committee_messages( $messages ) {
+function theatre_manager_committee_messages( $messages ) {
     global $post, $post_ID;
     $messages['theatre_committee'] = array(
       0 => '’', 
@@ -66,7 +66,7 @@ function theatre_history_committee_messages( $messages ) {
  * display contextual help for committee
  * @since 0.4
  */
-function theatre_history_committee_contextual_help( $contextual_help, $screen_id, $screen ) { 
+function theatre_manager_committee_contextual_help( $contextual_help, $screen_id, $screen ) { 
     if ( 'show' == $screen->id ) {
   
       $contextual_help = '<h2>Committees</h2>
@@ -88,7 +88,7 @@ function theatre_history_committee_contextual_help( $contextual_help, $screen_id
  * @since 0.4
  */
 
-function theatre_history_committee_enter_title( $input ) {
+function theatre_manager_committee_enter_title( $input ) {
     if ( 'theatre_committee' === get_post_type() ) {
         return __( 'Committee Season', 'your_textdomain' );
     }
@@ -103,36 +103,36 @@ function theatre_history_committee_enter_title( $input ) {
  * meta - committee Info
  * @since 0.4
  */
-function theatre_history_committee_meta_boxes_setup(){
+function theatre_manager_committee_meta_boxes_setup(){
     //boxes
-    add_action('add_meta_boxes', 'theatre_history_committee_member_meta');
+    add_action('add_meta_boxes', 'theatre_manager_committee_member_meta');
     //saves
-    add_action('save_post', 'theatre_history_committee_member_save', 10, 2);
+    add_action('save_post', 'theatre_manager_committee_member_save', 10, 2);
 }
 
-function theatre_history_committee_member_meta(){
+function theatre_manager_committee_member_meta(){
     add_meta_box(
-        'theatre-history-committee-member', //ID
+        'theatre-manager-committee-member', //ID
         'Committee Members', //Title TODO: Internationalisation
-        'theatre_history_committee_member_box', //callback function
+        'theatre_manager_committee_member_box', //callback function
         'theatre_committee', //post type
         'normal', //on-page location
         'core' //priority
     );
 }
 
-function theatre_history_committee_member_box($post, $args){
-    wp_nonce_field( plugin_basename( __FILE__ ), 'theatre_history_committee_member_nonce' );
+function theatre_manager_committee_member_box($post, $args){
+    wp_nonce_field( plugin_basename( __FILE__ ), 'theatre_manager_committee_member_nonce' );
     include plugin_dir_path( __FILE__ ) . 'forms/committee-member-form.php';
 }
 
-function theatre_history_committee_member_save($post_id, $post){
+function theatre_manager_committee_member_save($post_id, $post){
     // Don't wanna save this now, right?
     if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
         return;
-    if ( !isset( $_POST['theatre_history_committee_member_nonce'] ) )
+    if ( !isset( $_POST['theatre_manager_committee_member_nonce'] ) )
         return;
-    if ( !wp_verify_nonce( $_POST['theatre_history_committee_member_nonce'], plugin_basename( __FILE__ ) ) )
+    if ( !wp_verify_nonce( $_POST['theatre_manager_committee_member_nonce'], plugin_basename( __FILE__ ) ) )
         return;
 
     // We do want to save? Ok!
@@ -162,9 +162,9 @@ function theatre_history_committee_member_save($post_id, $post){
 
 //-----------------------------------------------------------------------------------------
 //Actions
-add_action('init', 'theatre_history_committee_type');
-add_filter( 'post_updated_messages', 'theatre_history_committee_messages' );
-add_action( 'contextual_help', 'theatre_history_committee_contextual_help', 10, 3 );
-add_action( 'load-post.php', 'theatre_history_committee_meta_boxes_setup' );
-add_action( 'load-post-new.php', 'theatre_history_committee_meta_boxes_setup' );
-add_filter( 'enter_title_here', 'theatre_history_committee_enter_title' );
+add_action('init', 'theatre_manager_committee_type');
+add_filter( 'post_updated_messages', 'theatre_manager_committee_messages' );
+add_action( 'contextual_help', 'theatre_manager_committee_contextual_help', 10, 3 );
+add_action( 'load-post.php', 'theatre_manager_committee_meta_boxes_setup' );
+add_action( 'load-post-new.php', 'theatre_manager_committee_meta_boxes_setup' );
+add_filter( 'enter_title_here', 'theatre_manager_committee_enter_title' );
