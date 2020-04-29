@@ -64,23 +64,24 @@ function theatre_manager_person_messages( $messages ) {
 
 //------------------------------------------------------------------------------------------
 /**
- * display contextual help for People
- * @since 0.3
+ * display help for People
+ * @since 0.5 - updated
  */
-function theatre_manager_person_contextual_help( $contextual_help, $screen_id, $screen ) { 
-    if ( 'show' == $screen->id ) {
-  
-      $contextual_help = '<h2>Members</h2>
-      <p>Members list all members that we know about! You can see a list of them on this page in reverse chronological order - the latest one we added is first.</p> 
-      <p>You can view the details of each member by clicking on its name, or you can perform bulk actions using the dropdown menu and selecting multiple items.</p>';
-  
-    } elseif ( 'edit-show' == $screen->id ) {
-  
-      $contextual_help = '<h2>Editing Members</h2>
-      <p>This page allows you to view/modify Member details. Please make sure to fill out the available boxes with the appropriate details (Title, Author, Cast) and <strong>not</strong> add these details to the show description.</p>';
-  
-    }
-    return $contextual_help;
+function theatre_manager_person_edit_help() { 
+    
+    $screen = get_current_screen();
+
+    $screen->add_help_tab(
+        array(
+            'id'      => 'sp_overview',
+            'title'   => 'Overview',
+            'content' => '<h2>Editing Members</h2>
+            <p>This page allows you to view/modify Member details. Please make sure to fill out the available boxes with the appropriate details (Title, Author, Cast) and <strong>not</strong> add these details to the show description.</p>',
+        )
+    );
+
+    // Add a sidebar to contextual help.
+    $screen->set_help_sidebar( 'Contact info here' );//TODO ADD
 }
 
 //------------------------------------------------------------------------------------------
@@ -155,8 +156,45 @@ function theatre_manager_person_info_save( $post_id, $post ) {
       delete_post_meta( $post_id, 'th_person_info_data', $old );
 }
 
+//------------------------------------------------------------------------------------------
+/**
+ * Show Shortcode
+ * Returns show data
+ * @since 0.5
+ */
+function theatre_manager_person_shortcode() {
+    $info = get_post_meta(get_the_ID(), 'th_person_info_data');
+
+    //basic data
+    $data = "<h3>York Uni Courses</h3>";
+    $casttext = "";
+    if ($info != ""){
+        $casttext = "<p> No Known Courses </p>";
+    } else {
+        foreach ( $info as $field ) {
+            foreach ($field as $item){
+                $casttext = $casttext . "<p>" . $item['course'] . ", Graduating in " . $item['grad'] . "</p>";
+            }
+        }
+    }
+    $data = $data . $casttext;
+    //return all
+    return $data;
+}
+
+//------------------------------------------------------------------------------------------
+/** 
+ * Add Actions/filters
+ * @since 0.2
+ */
 add_action('init', 'theatre_manager_person_type');
 add_filter( 'post_updated_messages', 'theatre_manager_person_messages' );
-add_action( 'contextual_help', 'theatre_manager_person_contextual_help', 10, 3 );
 add_action( 'load-post.php', 'theatre_manager_person_meta_boxes_setup' );
 add_action( 'load-post-new.php', 'theatre_manager_person_meta_boxes_setup' );
+add_action( 'load-post.php', 'theatre_manager_person_edit_help');
+
+/**
+ * Add Shortcodes
+ * @since 0.5
+ */
+add_shortcode( 'person_data', 'theatre_manager_person_shortcode' );

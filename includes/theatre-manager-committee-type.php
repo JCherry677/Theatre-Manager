@@ -26,7 +26,7 @@ function theatre_manager_committee_type(){
         'description'   => 'Contains information about our past committee shows',
         'public'        => true,
         'menu_position' => 40,
-        'supports'      => array( 'title', 'revisions'),
+        'supports'      => array( 'title', 'editor', 'revisions'),
         'rewrite'       => array('slug' => 'committee'),
         'show_in_rest'  => false, //true => Gutenberg editor, false => old editor
         'has_archive'   => true,
@@ -161,10 +161,41 @@ function theatre_manager_committee_member_save($post_id, $post){
 }
 
 //-----------------------------------------------------------------------------------------
-//Actions
+/**
+ * Show Shortcode
+ * Returns show data
+ * @since 0.5
+ */
+function theatre_manager_committee_shortcode() {
+    $people = get_post_meta(get_the_ID(), 'th_committee_member_data');
+
+    //basic data
+    $data = "<h3>Members</h3><table><tbody>";
+    $casttext = "";
+    foreach ( $people as $field ) {
+        foreach ($field as $item){
+            $casttext = $casttext . "<tr><td>" . $item['postition'] . " : " . theatre_manager_show_person_lookup($item['member'])  . "</td></tr>";
+        }
+    }
+    $data = $data . $casttext . "</tbody></table>";
+    //return all
+    return $data;
+}
+
+//-----------------------------------------------------------------------------------------
+/** 
+ * Add Actions/filters
+ * @since 0.4
+ */
 add_action('init', 'theatre_manager_committee_type');
 add_filter( 'post_updated_messages', 'theatre_manager_committee_messages' );
 add_action( 'contextual_help', 'theatre_manager_committee_contextual_help', 10, 3 );
 add_action( 'load-post.php', 'theatre_manager_committee_meta_boxes_setup' );
 add_action( 'load-post-new.php', 'theatre_manager_committee_meta_boxes_setup' );
 add_filter( 'enter_title_here', 'theatre_manager_committee_enter_title' );
+
+/**
+ * Add Shortcodes
+ * @since 0.5
+ */
+add_shortcode( 'committee_data', 'theatre_manager_committee_shortcode' );

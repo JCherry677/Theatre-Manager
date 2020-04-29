@@ -67,20 +67,21 @@ function theatre_manager_show_messages( $messages ) {
  * display contextual help for Shows
  * @since 0.1
  */
-function theatre_manager_contextual_help( $contextual_help, $screen_id, $screen ) { 
-    if ( 'show' == $screen->id ) {
-  
-      $contextual_help = '<h2>Shows</h2>
-      <p>Shows list all previous shows that we know about! You can see a list of them on this page in reverse chronological order - the latest one we added is first.</p> 
-      <p>You can view/edit the details of each show by clicking on its name, or you can perform bulk actions using the dropdown menu and selecting multiple items.</p>';
-  
-    } elseif ( 'edit-show' == $screen->id ) {
-  
-      $contextual_help = '<h2>Editing Shows</h2>
-      <p>This page allows you to view/modify show details. Please make sure to fill out the available boxes with the appropriate details (Title, Author, Cast) and <strong>not</strong> add these details to the show description.</p>';
-  
-    }
-    return $contextual_help;
+function theatre_manager_show_edit_help() { 
+    
+    $screen = get_current_screen();
+
+    $screen->add_help_tab(
+        array(
+            'id'      => 'sp_overview',
+            'title'   => 'Overview',
+            'content' => '<h2>Editing Members</h2>
+            <p>This page allows you to view/modify show details. Please make sure to fill out the available boxes with the appropriate details (Title, Author, Cast) and <strong>not</strong> add these details to the show description.</p>',
+        )
+    );
+
+    // Add a sidebar to contextual help.
+    $screen->set_help_sidebar( 'Contact info here' );//TODO ADD
 }
 
 //------------------------------------------------------------------------------------------
@@ -433,6 +434,7 @@ function add_admin_menu_separator() {
  */
 function theatre_manager_show_shortcode() {
     $author = get_post_meta(get_the_ID(), 'th_show_info_author', true);
+    if ($author == "") $author =  "unknown";
     $start = implode(" ", get_post_meta(get_the_ID(), 'th_show_info_start_date'));
     $end = implode(" ", get_post_meta(get_the_ID(), 'th_show_info_end_date'));
     $cast = get_post_meta(get_the_ID(), 'th_show_person_info_data');
@@ -484,12 +486,6 @@ function theatre_manager_show_person_lookup($name_id){
     }
 }
 
-/**
- * Add Shortcodes
- * @since 0.5
- */
-add_shortcode( 'show_data', 'theatre_manager_show_shortcode' );
-
 //------------------------------------------------------------------------------------------
 /** 
  * Add Actions/filters
@@ -499,6 +495,12 @@ add_action( 'init', 'theatre_manager_show_type' );
 add_action( 'init', 'create_show_taxonomies', 0 );
 add_action( 'admin_init', 'add_admin_menu_separator' );
 add_filter( 'post_updated_messages', 'theatre_manager_show_messages' );
-add_action( 'contextual_help', 'theatre_manager_contextual_help', 10, 3 );
 add_action( 'load-post.php', 'theatre_manager_show_meta_boxes_setup' );
 add_action( 'load-post-new.php', 'theatre_manager_show_meta_boxes_setup' );
+add_action( 'load-post.php', 'theatre_manager_show_edit_help');
+
+/**
+ * Add Shortcodes
+ * @since 0.5
+ */
+add_shortcode( 'show_data', 'theatre_manager_show_shortcode' );
