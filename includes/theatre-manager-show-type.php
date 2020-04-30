@@ -27,7 +27,7 @@ function theatre_manager_show_type(){
         'description'   => 'Contains information about past shows',
         'public'        => true,
         'menu_position' => 30,
-        'supports'      => array( 'title', 'editor', 'comments', 'revisions' ),
+        'supports'      => array( 'title', 'editor', 'comments', 'revisions', 'thumbnail'),
         'rewrite'       => array('slug' => 'shows'),
         'show_in_rest'  => false, //true => Gutenberg editor, false => old editor
         'has_archive'   => true,
@@ -60,28 +60,6 @@ function theatre_manager_show_messages( $messages ) {
       10 => sprintf( __('Show draft updated. <a target="_blank" href="%s">Preview show</a>'), esc_url( add_query_arg( 'preview', 'true', get_permalink($post_ID) ) ) ),
     );
     return $messages;
-}
-
-//------------------------------------------------------------------------------------------
-/**
- * display contextual help for Shows
- * @since 0.1
- */
-function theatre_manager_show_edit_help() { 
-    
-    $screen = get_current_screen();
-
-    $screen->add_help_tab(
-        array(
-            'id'      => 'sp_overview',
-            'title'   => 'Overview',
-            'content' => '<h2>Editing Members</h2>
-            <p>This page allows you to view/modify show details. Please make sure to fill out the available boxes with the appropriate details (Title, Author, Cast) and <strong>not</strong> add these details to the show description.</p>',
-        )
-    );
-
-    // Add a sidebar to contextual help.
-    $screen->set_help_sidebar( 'Contact info here' );//TODO ADD
 }
 
 //------------------------------------------------------------------------------------------
@@ -167,6 +145,56 @@ function create_show_taxonomies(){
     );
     register_taxonomy( 'show_type', array( 'theatre_show' ), $args );
 }
+
+//------------------------------------------------------------------------------------------
+/**
+ * post columns
+ * 
+ * show date
+ * @since 0.5
+ */
+
+function theatre_manager_editor_show_columns($columns){
+    unset( $columns['date'] );
+    $columns['show_start'] = __( 'Start Date', 'theatre-manager');
+    $columns['show_end'] = __( 'End Date', 'theatre-manager');
+    return $columns;
+}
+
+//get data
+function theatre_manager_show_columns( $column, $post_id ){
+    switch ($column){
+        case 'show_start':
+            $start = get_post_meta($post_id, 'th_show_info_start_date', true);
+            echo $start;
+            break;
+        case 'show_end':
+            $end = get_post_meta($post_id, 'th_show_info_end_date', true);
+            echo $end;
+            break;
+    }
+}
+
+//make sortable
+function theatre_manager_show_columns_sortable( $columns ) {
+    $columns['show_start'] = 'show_start';
+    $columns['show_end'] = 'show_end';
+    return $columns;
+}
+
+function theatre_manager_show_orderby( $query ) {
+    if( ! is_admin() || ! $query->is_main_query() ) {
+      return;
+    }
+  
+    if ( 'show_start' === $query->get( 'orderby') ) {
+      $query->set( 'orderby', 'meta_value' );
+      $query->set( 'meta_key', 'th_show_info_start_date' );
+    } elseif ( 'show_end' === $query->get( 'orderby') ) {
+        $query->set( 'orderby', 'meta_value' );
+        $query->set( 'meta_key', 'th_show_info_start_date' );
+    }
+  }
 
 //------------------------------------------------------------------------------------------
 /**
@@ -494,10 +522,14 @@ function theatre_manager_show_person_lookup($name_id){
 add_action( 'init', 'theatre_manager_show_type' );
 add_action( 'init', 'create_show_taxonomies', 0 );
 add_action( 'admin_init', 'add_admin_menu_separator' );
-add_filter( 'post_updated_messages', 'theatre_manager_show_messages' );
 add_action( 'load-post.php', 'theatre_manager_show_meta_boxes_setup' );
 add_action( 'load-post-new.php', 'theatre_manager_show_meta_boxes_setup' );
-add_action( 'load-post.php', 'theatre_manager_show_edit_help');
+add_action( 'manage_theatre_show_posts_custom_column' , 'theatre_manager_show_columns', 10, 2 );
+add_action( 'pre_get_posts', 'theatre_manager_show_orderby' );
+
+add_filter( 'post_updated_messages', 'theatre_manager_show_messages' );
+add_filter( 'manage_theatre_show_posts_columns', 'theatre_manager_editor_show_columns' );
+add_filter( 'manage_edit-theatre_show_sortable_columns', 'theatre_manager_show_columns_sortable' );
 
 /**
  * Add Shortcodes

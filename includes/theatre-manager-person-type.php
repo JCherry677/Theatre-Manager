@@ -64,25 +64,56 @@ function theatre_manager_person_messages( $messages ) {
 
 //------------------------------------------------------------------------------------------
 /**
- * display help for People
- * @since 0.5 - updated
+ * post columns
+ * 
+ * show date
+ * @since 0.5
  */
-function theatre_manager_person_edit_help() { 
-    
-    $screen = get_current_screen();
 
-    $screen->add_help_tab(
-        array(
-            'id'      => 'sp_overview',
-            'title'   => 'Overview',
-            'content' => '<h2>Editing Members</h2>
-            <p>This page allows you to view/modify Member details. Please make sure to fill out the available boxes with the appropriate details (Title, Author, Cast) and <strong>not</strong> add these details to the show description.</p>',
-        )
-    );
-
-    // Add a sidebar to contextual help.
-    $screen->set_help_sidebar( 'Contact info here' );//TODO ADD
+function theatre_manager_editor_person_columns($columns){
+    unset( $columns['date'] );
+    $columns['grad_year'] = __( 'Graduation Year', 'theatre-manager');
+    return $columns;
 }
+
+//get data
+function theatre_manager_person_columns( $column, $post_id ){
+    switch ($column){
+        case 'grad_year':
+            $info = get_post_meta(get_the_ID(), 'th_person_info_data');
+            $text = "";
+            if ($info == ""){
+                $text = "0";
+            } else {
+                foreach ( $info as $field ) {
+                    foreach ($field as $item){
+                        $text = $item['grad'];
+                    }
+                }
+            }
+            echo $text;
+            break;
+
+    }
+}
+
+//make sortable
+function theatre_manager_person_columns_sortable( $columns ) {
+    $columns['grad_year'] = 'grad_year';
+    return $columns;
+}
+
+//potentially doesn't work
+function theatre_manager_person_orderby( $query ) {
+    if( ! is_admin() || ! $query->is_main_query() ) {
+      return;
+    }
+  
+    if ( 'grad_year' === $query->get( 'orderby') ) {
+      $query->set( 'orderby', 'meta_value' );
+      $query->set( 'meta_key', 'th_person_info_data' );
+    }
+  }
 
 //------------------------------------------------------------------------------------------
 /**
@@ -168,7 +199,7 @@ function theatre_manager_person_shortcode() {
     //basic data
     $data = "<h3>York Uni Courses</h3>";
     $casttext = "";
-    if ($info != ""){
+    if ($info == ""){
         $casttext = "<p> No Known Courses </p>";
     } else {
         foreach ( $info as $field ) {
@@ -188,10 +219,14 @@ function theatre_manager_person_shortcode() {
  * @since 0.2
  */
 add_action('init', 'theatre_manager_person_type');
-add_filter( 'post_updated_messages', 'theatre_manager_person_messages' );
 add_action( 'load-post.php', 'theatre_manager_person_meta_boxes_setup' );
 add_action( 'load-post-new.php', 'theatre_manager_person_meta_boxes_setup' );
-add_action( 'load-post.php', 'theatre_manager_person_edit_help');
+add_action( 'manage_theatre_person_posts_custom_column' , 'theatre_manager_person_columns', 10, 2 );
+add_action( 'pre_get_posts', 'theatre_manager_person_orderby' );
+
+add_filter( 'post_updated_messages', 'theatre_manager_person_messages' );
+add_filter( 'manage_theatre_person_posts_columns', 'theatre_manager_editor_person_columns' );
+add_filter( 'manage_edit-theatre_person_sortable_columns', 'theatre_manager_person_columns_sortable' );
 
 /**
  * Add Shortcodes

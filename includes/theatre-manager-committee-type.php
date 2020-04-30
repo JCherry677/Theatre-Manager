@@ -63,23 +63,15 @@ function theatre_manager_committee_messages( $messages ) {
 
 //------------------------------------------------------------------------------------------
 /**
- * display contextual help for committee
- * @since 0.4
+ * post columns
+ * 
+ * show date
+ * @since 0.5
  */
-function theatre_manager_committee_contextual_help( $contextual_help, $screen_id, $screen ) { 
-    if ( 'show' == $screen->id ) {
-  
-      $contextual_help = '<h2>Committees</h2>
-      <p>Committees list all committee members that we know about! You can see a list of them on this page in reverse chronological order - the latest one we added is first.</p> 
-      <p>You can view the details of each committee by clicking on its name, or you can perform bulk actions using the dropdown menu and selecting multiple items.</p>';
-  
-    } elseif ( 'edit-show' == $screen->id ) {
-  
-      $contextual_help = '<h2>Editing Members</h2>
-      <p>This page allows you to view/modify committee details. The title of the committee should be the season the committee applies to, but every position in the committee doesn\'t have to be filled</p>';
-  
-    }
-    return $contextual_help;
+
+function theatre_manager_editor_committee_columns($columns){
+    unset( $columns['date'] );
+    return $columns;
 }
 
 //------------------------------------------------------------------------------------------
@@ -188,11 +180,12 @@ function theatre_manager_committee_shortcode() {
  * @since 0.4
  */
 add_action('init', 'theatre_manager_committee_type');
-add_filter( 'post_updated_messages', 'theatre_manager_committee_messages' );
-add_action( 'contextual_help', 'theatre_manager_committee_contextual_help', 10, 3 );
 add_action( 'load-post.php', 'theatre_manager_committee_meta_boxes_setup' );
 add_action( 'load-post-new.php', 'theatre_manager_committee_meta_boxes_setup' );
+
+add_filter( 'post_updated_messages', 'theatre_manager_committee_messages' );
 add_filter( 'enter_title_here', 'theatre_manager_committee_enter_title' );
+add_filter( 'manage_theatre_committee_posts_columns', 'theatre_manager_editor_committee_columns' );
 
 /**
  * Add Shortcodes
