@@ -5,7 +5,7 @@
  * @wordpress-plugin
  * Plugin Name: Theatre Manager
  * Description: A plugin to manage theatrical productions, storing infomation about who is involved. Can also be used as an archive
- * Version: 0.5
+ * Version: 0.6
  * Requires at least: 5.4
  * Requires PHP: 7.4
  * Author: John

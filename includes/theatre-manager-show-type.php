@@ -35,6 +35,7 @@ function theatre_manager_show_type(){
 
     register_post_type('theatre_show', $args);
 }
+add_action( 'init', 'theatre_manager_show_type' );
 
 //------------------------------------------------------------------------------------------
 /**
@@ -61,6 +62,7 @@ function theatre_manager_show_messages( $messages ) {
     );
     return $messages;
 }
+add_filter( 'post_updated_messages', 'theatre_manager_show_messages' );
 
 //------------------------------------------------------------------------------------------
 /**
@@ -99,7 +101,7 @@ function create_show_taxonomies(){
     );
     register_taxonomy( 'season', array( 'theatre_show', 'theatre_committee' ), $args );
 
-    //Venue taxonomy - hierarchical
+    //venue taxonomy - hierarchical
     $labels = array(
         'name'              => _x( 'Venue', 'taxonomy general name' ),
         'singular_name'     => _x( 'Venue', 'taxonomy singular name' ),
@@ -122,7 +124,7 @@ function create_show_taxonomies(){
     );
     register_taxonomy( 'venue', array( 'theatre_show' ), $args );
 
-    //Venue taxonomy - hierarchical
+    //show_type taxonomy - hierarchical
     $labels = array(
         'name'              => _x( 'Show Type', 'taxonomy general name' ),
         'singular_name'     => _x( 'Show Type', 'taxonomy singular name' ),
@@ -145,6 +147,7 @@ function create_show_taxonomies(){
     );
     register_taxonomy( 'show_type', array( 'theatre_show' ), $args );
 }
+add_action( 'init', 'create_show_taxonomies', 0 );
 
 //------------------------------------------------------------------------------------------
 /**
@@ -194,7 +197,11 @@ function theatre_manager_show_orderby( $query ) {
         $query->set( 'orderby', 'meta_value' );
         $query->set( 'meta_key', 'th_show_info_start_date' );
     }
-  }
+}
+add_action( 'manage_theatre_show_posts_custom_column' , 'theatre_manager_show_columns', 10, 2 );
+add_action( 'pre_get_posts', 'theatre_manager_show_orderby' );
+add_filter( 'manage_theatre_show_posts_columns', 'theatre_manager_editor_show_columns' );
+add_filter( 'manage_edit-theatre_show_sortable_columns', 'theatre_manager_show_columns_sortable' );
 
 //------------------------------------------------------------------------------------------
 /**
@@ -224,6 +231,8 @@ function theatre_manager_show_meta_boxes_setup(){
     add_action('save_post', 'theatre_manager_show_crew_save', 10, 2);
     add_action('save_post', 'theatre_manager_show_review_save', 10, 2);
 }
+add_action( 'load-post.php', 'theatre_manager_show_meta_boxes_setup' );
+add_action( 'load-post-new.php', 'theatre_manager_show_meta_boxes_setup' );
 
 //info meta box controller
 function theatre_manager_show_info_meta(){
@@ -453,6 +462,7 @@ function add_admin_menu_separator() {
     4 => 'wp-menu-separator'
     );
 }
+add_action( 'admin_init', 'add_admin_menu_separator' );
 
 //------------------------------------------------------------------------------------------
 /**
@@ -513,26 +523,253 @@ function theatre_manager_show_person_lookup($name_id){
         }
     }
 }
+add_shortcode( 'show_data', 'theatre_manager_show_shortcode' );
 
 //------------------------------------------------------------------------------------------
 /** 
- * Add Actions/filters
- * @since 0.1
+ * Add Widgets
+ * 
+ * Season Listing widget
+ * @since 0.6
+ * Venue Listing widget
+ * @since 0.6
+ * Show Type Listing widget
+ * @since 0.6
  */
-add_action( 'init', 'theatre_manager_show_type' );
-add_action( 'init', 'create_show_taxonomies', 0 );
-add_action( 'admin_init', 'add_admin_menu_separator' );
-add_action( 'load-post.php', 'theatre_manager_show_meta_boxes_setup' );
-add_action( 'load-post-new.php', 'theatre_manager_show_meta_boxes_setup' );
-add_action( 'manage_theatre_show_posts_custom_column' , 'theatre_manager_show_columns', 10, 2 );
-add_action( 'pre_get_posts', 'theatre_manager_show_orderby' );
+class tm_show_season_widget extends WP_Widget {
 
-add_filter( 'post_updated_messages', 'theatre_manager_show_messages' );
-add_filter( 'manage_theatre_show_posts_columns', 'theatre_manager_editor_show_columns' );
-add_filter( 'manage_edit-theatre_show_sortable_columns', 'theatre_manager_show_columns_sortable' );
+    function __construct(){
+        parent::__construct(
+            'tm_show_season_widget', //ID
+            __('Show Seasons', 'theatre-manager'),//Widget
+            array(
+                'description' => __('Lists all seasons that there are shows in', 'theatre-manager'),
+            ),
+        );
+    }
 
-/**
- * Add Shortcodes
- * @since 0.5
- */
-add_shortcode( 'show_data', 'theatre_manager_show_shortcode' );
+    //Front end
+    public function widget($args, $instance){
+        $title = apply_filters( 'widget_title', $instance['title'] );
+
+        $count        = ! empty( $instance['count'] ) ? '1' : '0';
+		$hierarchical = ! empty( $instance['hierarchical'] ) ? '1' : '0';
+
+        // before and after widget arguments defined by themes
+        echo $args['before_widget'];
+        if ( ! empty( $title ) ){
+            echo $args['before_title'] . $title . $args['after_title'];
+        }
+
+        $cat_args = array(
+			'orderby'      => 'name',
+			'show_count'   => $count,
+            'hierarchical' => $hierarchical,
+            'taxonomy'     => 'season',
+		);?>
+        <p>View shows by Season</p>
+		<ul>
+			<?php
+			$cat_args['title_li'] = '';
+
+			wp_list_categories( apply_filters( 'widget_categories_args', $cat_args, $instance ) );
+			?>
+		</ul>
+        <?php
+        echo $args['after_widget'];
+    }
+
+    // Widget Backend 
+    public function form( $instance ) {
+        // Defaults.
+		$instance     = wp_parse_args( (array) $instance, array( 'title' => '' ) );
+		$count        = isset( $instance['count'] ) ? (bool) $instance['count'] : false;
+		$hierarchical = isset( $instance['hierarchical'] ) ? (bool) $instance['hierarchical'] : false;
+		?>
+		<p>
+			<label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:' ); ?></label>
+			<input class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" type="text" value="<?php echo esc_attr( $instance['title'] ); ?>" />
+		</p>
+
+		<p>
+			<input type="checkbox" class="checkbox" id="<?php echo $this->get_field_id( 'count' ); ?>" name="<?php echo $this->get_field_name( 'count' ); ?>"<?php checked( $count ); ?> />
+			<label for="<?php echo $this->get_field_id( 'count' ); ?>"><?php _e( 'Show post counts' ); ?></label>
+			<br />
+
+			<input type="checkbox" class="checkbox" id="<?php echo $this->get_field_id( 'hierarchical' ); ?>" name="<?php echo $this->get_field_name( 'hierarchical' ); ?>"<?php checked( $hierarchical ); ?> />
+			<label for="<?php echo $this->get_field_id( 'hierarchical' ); ?>"><?php _e( 'Show hierarchy' ); ?></label>
+		</p>
+		<?php 
+    }
+    // Updating widget replacing old instances with new
+    public function update( $new_instance, $old_instance ) {
+        $instance                 = $old_instance;
+		$instance['title']        = sanitize_text_field( $new_instance['title'] );
+		$instance['count']        = ! empty( $new_instance['count'] ) ? 1 : 0;
+		$instance['hierarchical'] = ! empty( $new_instance['hierarchical'] ) ? 1 : 0;
+
+		return $instance;
+    }
+}
+
+class tm_show_venue_widget extends WP_Widget {
+
+    function __construct(){
+        parent::__construct(
+            'tm_show_venue_widget', //ID
+            __('Show Venues', 'theatre-manager'),//Widget
+            array(
+                'description' => __('Lists all Venues that there are shows in', 'theatre-manager'),
+            ),
+        );
+    }
+
+    //Front end
+    public function widget($args, $instance){
+        $title = apply_filters( 'widget_title', $instance['title'] );
+
+        $count        = ! empty( $instance['count'] ) ? '1' : '0';
+		$hierarchical = ! empty( $instance['hierarchical'] ) ? '1' : '0';
+
+        // before and after widget arguments defined by themes
+        echo $args['before_widget'];
+        if ( ! empty( $title ) ){
+            echo $args['before_title'] . $title . $args['after_title'];
+        }
+
+        $cat_args = array(
+			'orderby'      => 'name',
+			'show_count'   => $count,
+            'hierarchical' => $hierarchical,
+            'taxonomy'     => 'venue',
+        );
+        echo "<p>View shows by Venue</p>";
+        ?>
+		<ul>
+			<?php
+			$cat_args['title_li'] = '';
+
+			wp_list_categories( apply_filters( 'widget_categories_args', $cat_args, $instance ) );
+			?>
+		</ul>
+        <?php
+        echo $args['after_widget'];
+    }
+
+    // Widget Backend 
+    public function form( $instance ) {
+        // Defaults.
+		$instance     = wp_parse_args( (array) $instance, array( 'title' => '' ) );
+		$count        = isset( $instance['count'] ) ? (bool) $instance['count'] : false;
+		$hierarchical = isset( $instance['hierarchical'] ) ? (bool) $instance['hierarchical'] : false;
+		?>
+		<p>
+			<label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:' ); ?></label>
+			<input class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" type="text" value="<?php echo esc_attr( $instance['title'] ); ?>" />
+		</p>
+
+		<p>
+			<input type="checkbox" class="checkbox" id="<?php echo $this->get_field_id( 'count' ); ?>" name="<?php echo $this->get_field_name( 'count' ); ?>"<?php checked( $count ); ?> />
+			<label for="<?php echo $this->get_field_id( 'count' ); ?>"><?php _e( 'Show post counts' ); ?></label>
+			<br />
+
+			<input type="checkbox" class="checkbox" id="<?php echo $this->get_field_id( 'hierarchical' ); ?>" name="<?php echo $this->get_field_name( 'hierarchical' ); ?>"<?php checked( $hierarchical ); ?> />
+			<label for="<?php echo $this->get_field_id( 'hierarchical' ); ?>"><?php _e( 'Show hierarchy' ); ?></label>
+		</p>
+		<?php 
+    }
+    // Updating widget replacing old instances with new
+    public function update( $new_instance, $old_instance ) {
+        $instance                 = $old_instance;
+		$instance['title']        = sanitize_text_field( $new_instance['title'] );
+		$instance['count']        = ! empty( $new_instance['count'] ) ? 1 : 0;
+		$instance['hierarchical'] = ! empty( $new_instance['hierarchical'] ) ? 1 : 0;
+
+		return $instance;
+    }
+}
+
+class tm_show_type_widget extends WP_Widget {
+
+    function __construct(){
+        parent::__construct(
+            'tm_show_type_widget', //ID
+            __('Show Types', 'theatre-manager'),//Widget
+            array(
+                'description' => __('Lists show types', 'theatre-manager'),
+            ),
+        );
+    }
+
+    //Front end
+    public function widget($args, $instance){
+        $title = apply_filters( 'widget_title', $instance['title'] );
+
+        $count        = ! empty( $instance['count'] ) ? '1' : '0';
+		$hierarchical = ! empty( $instance['hierarchical'] ) ? '1' : '0';
+
+        // before and after widget arguments defined by themes
+        echo $args['before_widget'];
+        if ( ! empty( $title ) ){
+            echo $args['before_title'] . $title . $args['after_title'];
+        }
+
+        $cat_args = array(
+			'orderby'      => 'name',
+			'show_count'   => $count,
+            'hierarchical' => $hierarchical,
+            'taxonomy'     => 'show_type',
+        );
+        echo "<p>View shows by Type</p>";
+        ?>
+		<ul>
+			<?php
+			$cat_args['title_li'] = '';
+
+			wp_list_categories( apply_filters( 'widget_categories_args', $cat_args, $instance ) );
+			?>
+		</ul>
+        <?php
+        echo $args['after_widget'];
+    }
+
+    // Widget Backend 
+    public function form( $instance ) {
+        // Defaults.
+		$instance     = wp_parse_args( (array) $instance, array( 'title' => '' ) );
+		$count        = isset( $instance['count'] ) ? (bool) $instance['count'] : false;
+		$hierarchical = isset( $instance['hierarchical'] ) ? (bool) $instance['hierarchical'] : false;
+		?>
+		<p>
+			<label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:' ); ?></label>
+			<input class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" type="text" value="<?php echo esc_attr( $instance['title'] ); ?>" />
+		</p>
+
+		<p>
+			<input type="checkbox" class="checkbox" id="<?php echo $this->get_field_id( 'count' ); ?>" name="<?php echo $this->get_field_name( 'count' ); ?>"<?php checked( $count ); ?> />
+			<label for="<?php echo $this->get_field_id( 'count' ); ?>"><?php _e( 'Show post counts' ); ?></label>
+			<br />
+
+			<input type="checkbox" class="checkbox" id="<?php echo $this->get_field_id( 'hierarchical' ); ?>" name="<?php echo $this->get_field_name( 'hierarchical' ); ?>"<?php checked( $hierarchical ); ?> />
+			<label for="<?php echo $this->get_field_id( 'hierarchical' ); ?>"><?php _e( 'Show hierarchy' ); ?></label>
+		</p>
+		<?php 
+    }
+    // Updating widget replacing old instances with new
+    public function update( $new_instance, $old_instance ) {
+        $instance                 = $old_instance;
+		$instance['title']        = sanitize_text_field( $new_instance['title'] );
+		$instance['count']        = ! empty( $new_instance['count'] ) ? 1 : 0;
+		$instance['hierarchical'] = ! empty( $new_instance['hierarchical'] ) ? 1 : 0;
+
+		return $instance;
+    }
+}
+
+// Register and load the widgets
+function tm_load_widgets() {
+    register_widget( 'tm_show_season_widget' );
+    register_widget( 'tm_show_venue_widget' );
+    register_widget( 'tm_show_type_widget' );
+}
+add_action( 'widgets_init', 'tm_load_widgets' );
