@@ -203,9 +203,9 @@ function theatre_manager_person_info_save( $post_id, $post ) {
  */
 function theatre_manager_person_shortcode() {
     $info = get_post_meta(get_the_ID(), 'th_person_info_data');
-    $shows = get_post_meta(get_the_ID(), 'th_show_roles');
-    $crews = get_post_meta(get_the_ID(), 'th_crew_roles');
-    $committees = get_post_meta(get_the_ID(), 'th_committee_roles');
+    $shows = get_post_meta(get_the_ID(), 'th_show_roles', true);
+    $crews = get_post_meta(get_the_ID(), 'th_crew_roles', true);
+    $committees = get_post_meta(get_the_ID(), 'th_committee_roles', true);
 
     //basic data
     $degreetext = "<h2>York Uni Courses</h2>";
