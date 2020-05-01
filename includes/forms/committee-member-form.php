@@ -121,6 +121,6 @@
             </tbody>
         </table>
 
-        <p><a id="add-row" class="button" href="#">Add Cast Member</a></p>
+        <p><a id="add-row" class="button" href="#">Add Committee Member</a></p>
     </div>
 </div>

@@ -182,19 +182,21 @@ function theatre_manager_committee_member_save($post_id, $post){
  * @since 0.5
  */
 function theatre_manager_committee_shortcode() {
-    $people = get_post_meta(get_the_ID(), 'th_committee_member_data');
+    $people = get_post_meta(get_the_ID(), 'th_committee_member_data', true);
 
     //basic data
-    $data = "<h3>Members</h3><table><tbody>";
-    $casttext = "";
-    foreach ( $people as $field ) {
-        foreach ($field as $item){
-            $casttext = $casttext . "<tr><td>" . $item['postition'] . " : " . theatre_manager_show_person_lookup($item['member'])  . "</td></tr>";
+    $committeestext = "<h3>Members</h3>";
+    $committeestext = $committeestext . "<table><thead><td><h6>Role</h6></td><td><h6>Member</h6></td></thead><tbody>";
+    foreach ( $people as $person => $role ) {
+        $committeestext = $committeestext . "<tr><td><table><tbody>";
+        foreach ($role as $item){
+            $committeestext = $committeestext . "<tr><td>" . $item . "</td></tr>";
         }
+        $committeestext = $committeestext . "</tbody></table></td><td><a href=\"" . get_post_permalink($person)."\">" . theatre_manager_name_lookup($person, 'theatre_person') . "</td></tr>";
     }
-    $data = $data . $casttext . "</tbody></table>";
+    $committeestext = $committeestext . "</tbody></table>";
     //return all
-    return $data;
+    return $committeestext;
 }
 
 //-----------------------------------------------------------------------------------------

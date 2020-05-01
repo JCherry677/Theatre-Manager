@@ -533,7 +533,7 @@ function theatre_manager_show_shortcode() {
     $casttext = "";
     foreach ( $cast as $actor => $role ) {
         foreach ($role as $item){
-            $casttext = $casttext . "<tr><td>" . theatre_manager_name_lookup($actor, 'theatre_person') . " as " . $item . "</td></tr>";
+            $casttext = $casttext . "<tr><td><a href=\"" . get_post_permalink($actor)."\">" . theatre_manager_name_lookup($actor, 'theatre_person') . "</a> as " . $item . "</td></tr>";
         }
     }
     $data = $data . $casttext . "</tbody></table></td></tr>";
@@ -542,7 +542,7 @@ function theatre_manager_show_shortcode() {
     $casttext = "";
     foreach ( $crew as $pos => $job ) {
         foreach ($job as $item){
-            $casttext = $casttext . "<tr><td>" . theatre_manager_name_lookup($pos, 'theatre_person') . " as " . $item . "</td></tr>";
+            $casttext = $casttext . "<tr><td>" . $item . ": <a href=\"" . get_post_permalink($pos)."\">" . theatre_manager_name_lookup($pos, 'theatre_person') . "</td></tr>";
         }
     }
     $data = $data . $casttext . "</tbody></table></td></tr>";

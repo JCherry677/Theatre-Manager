@@ -220,16 +220,19 @@ function theatre_manager_person_shortcode() {
     }
 
     //show - cast
-    $casttext = "<h2>Shows</h2><h3>Roles</h3>";
+    $casttext = "<h2>Shows</h2><h3>Cast</h3>";
     if ($shows == ""){
         $casttext = $casttext . "<p>No known shows where member has been in the cast</p>";
     } else{
+        $casttext = $casttext . "<table><thead><td><h6>Show</h6></td><td><h6>Role(s)</h6></td></thead><tbody>";
         foreach($shows as $show => $role){
-            $casttext = $casttext . "<h4>" . theatre_manager_name_lookup($show, 'theatre_show') . "</h4>";
+            $casttext = $casttext . "<tr><td><a href=\"" . get_post_permalink($show)."\">". theatre_manager_name_lookup($show, 'theatre_show') . "</a></td><td><table><tbody>";
             foreach ($role as $item){
-                $casttext = $casttext . "<p>" . $item . "</p>";
+                $casttext = $casttext . "<tr><td>" . $item . "</td></tr>";
             }
+            $casttext = $casttext . "</tbody></table></td></tr>";
         }
+        $casttext = $casttext . "</tbody></table>";
     }
 
     //show - crew
@@ -237,27 +240,34 @@ function theatre_manager_person_shortcode() {
     if ($crews == ""){
         $crewtext = $crewtext . "<p>No known shows where member has been in the crew</p>";
     } else{
+        $crewtext = $crewtext . "<table><thead><td><h6>Show</h6></td><td><h6>Role(s)</h6></td></thead><tbody>";
         foreach($crews as $show => $role){
-            $crewtext = $crewtext . "<h4>" . theatre_manager_name_lookup($show, 'theatre_show')  . "</h4>";
+            $crewtext = $crewtext . "<tr><td><a href=\"" . get_post_permalink($show)."\">". theatre_manager_name_lookup($show, 'theatre_show')  . "</a></td><td><table><tbody>";
             foreach ($role as $item){
-                $crewtext = $crewtext . "<p>" . $item . "</p>";
+                $crewtext = $crewtext . "<tr><td>" . $item . "</td></tr>";
             }
+            $crewtext = $crewtext . "</tbody></table></td></tr>";
         }
+        $crewtext = $crewtext . "</tbody></table>";
     }
 
     //committees
-    $committeestext = "<h3>Crew</h3>";
-    if ($committees != ""){
-        $committeestext = "<h3>Committees</h3>";
+    $committeestext = "<h3>Committees</h3>";
+    if ($committees == ""){
+        "<p>Member has not been in any committees</p>";
+    } else {
+        $crewtext = $crewtext . "<table><thead><td><h6>Commitee Period</h6></td><td><h6>Role</h6></td></thead><tbody>";
         foreach($committees as $committee => $role){
-            $committeestext = $committeestext . "<h4>" . theatre_manager_name_lookup($committee, 'theatre_committee') . "</h4>";
+            $committeestext = $committeestext . "<tr><td><a href=\"" . get_post_permalink($committee)."\">" . theatre_manager_name_lookup($committee, 'theatre_committee') . "</td><td><table><tbody>";
             foreach ($role as $item){
-                $committeestext = $committeestext . "<p>" . $item . "</p>";
+                $committeestext = $committeestext . "<tr><td>" . $item . "</td></tr>";
             }
+            $committeestext = $committeestext . "</tbody></table></td></tr>";
         }
+        $committeestext = $committeestext . "</tbody></table>";
     }
 
-    $data = $degreetext . $casttext .  $crewtext;
+    $data = $degreetext . $casttext .  $crewtext . $committeestext;
     //return all
     return $data;
 }
