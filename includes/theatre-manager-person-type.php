@@ -35,6 +35,7 @@ function theatre_manager_person_type(){
 
     register_post_type('theatre_person', $args);
 }
+add_action('init', 'theatre_manager_person_type');
 
 //------------------------------------------------------------------------------------------
 /**
@@ -61,6 +62,7 @@ function theatre_manager_person_messages( $messages ) {
     );
     return $messages;
 }
+add_filter( 'post_updated_messages', 'theatre_manager_person_messages' );
 
 //------------------------------------------------------------------------------------------
 /**
@@ -75,6 +77,7 @@ function theatre_manager_editor_person_columns($columns){
     $columns['grad_year'] = __( 'Graduation Year', 'theatre-manager');
     return $columns;
 }
+add_filter( 'manage_theatre_person_posts_columns', 'theatre_manager_editor_person_columns' );
 
 //get data
 function theatre_manager_person_columns( $column, $post_id ){
@@ -96,12 +99,14 @@ function theatre_manager_person_columns( $column, $post_id ){
 
     }
 }
+add_action( 'manage_theatre_person_posts_custom_column' , 'theatre_manager_person_columns', 10, 2 );
 
 //make sortable
 function theatre_manager_person_columns_sortable( $columns ) {
     $columns['grad_year'] = 'grad_year';
     return $columns;
 }
+add_filter( 'manage_edit-theatre_person_sortable_columns', 'theatre_manager_person_columns_sortable' );
 
 //potentially doesn't work
 function theatre_manager_person_orderby( $query ) {
@@ -113,7 +118,8 @@ function theatre_manager_person_orderby( $query ) {
       $query->set( 'orderby', 'meta_value' );
       $query->set( 'meta_key', 'th_person_info_data' );
     }
-  }
+}
+add_action( 'pre_get_posts', 'theatre_manager_person_orderby' );
 
 //------------------------------------------------------------------------------------------
 /**
@@ -143,6 +149,8 @@ function theatre_manager_person_info_meta(){
         'core' //priority
     );
 }
+add_action( 'load-post.php', 'theatre_manager_person_meta_boxes_setup' );
+add_action( 'load-post-new.php', 'theatre_manager_person_meta_boxes_setup' );
 
 //HTML representation of the box
 function theatre_manager_person_info_box($post){
@@ -212,24 +220,20 @@ function theatre_manager_person_shortcode() {
     //return all
     return $data;
 }
-
-//------------------------------------------------------------------------------------------
-/** 
- * Add Actions/filters
- * @since 0.2
- */
-add_action('init', 'theatre_manager_person_type');
-add_action( 'load-post.php', 'theatre_manager_person_meta_boxes_setup' );
-add_action( 'load-post-new.php', 'theatre_manager_person_meta_boxes_setup' );
-add_action( 'manage_theatre_person_posts_custom_column' , 'theatre_manager_person_columns', 10, 2 );
-add_action( 'pre_get_posts', 'theatre_manager_person_orderby' );
-
-add_filter( 'post_updated_messages', 'theatre_manager_person_messages' );
-add_filter( 'manage_theatre_person_posts_columns', 'theatre_manager_editor_person_columns' );
-add_filter( 'manage_edit-theatre_person_sortable_columns', 'theatre_manager_person_columns_sortable' );
+add_shortcode( 'person_data', 'theatre_manager_person_shortcode' );
 
 /**
- * Add Shortcodes
+ * Utility Functions
+ * theatre_manager_show_name_lookup - get name from id
  * @since 0.5
  */
-add_shortcode( 'person_data', 'theatre_manager_person_shortcode' );
+function theatre_manager_show_name_lookup($name_id){
+    $query = new WP_Query( 'post_type=theatre_show' );
+    while ( $query->have_posts() ) {
+        $query->the_post();
+        $id = get_the_ID();
+        if($id == $name_id){
+            return get_the_title();
+        }
+    }
+}

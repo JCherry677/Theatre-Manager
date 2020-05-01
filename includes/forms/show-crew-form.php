@@ -1,8 +1,8 @@
 <script type="text/javascript">
     jQuery(document).ready(function( $ ){
         $( '#add-crew-row' ).on('click', function() {
-            var row = $( '.empty-row.screen-crew-text' ).clone(true);
-            row.removeClass( 'empty-row screen-crew-text' );
+            var row = $( '.empty-crew-row.screen-reader-text' ).clone(true);
+            row.removeClass( 'empty-crew-row screen-reader-text' );
             row.insertBefore( '#repeatable-fieldset-two tbody>tr:last' );
             return false;
         });
@@ -63,7 +63,7 @@
         <table id="repeatable-fieldset-two" width="100%">
             <thead>
                 <tr>
-                    <th width="40%">Position</th>
+                    <th width="40%">Role</th>
                     <th width="40%">Person</th>
                     <th width="8%"></th>
                 </tr>
@@ -71,44 +71,39 @@
             <tbody>
                 <?php
                 $repeatable_fields = get_post_meta($post->ID, 'th_show_crew_info_data', true);
-                if ( $repeatable_fields ) :
-
-                foreach ( $repeatable_fields as $field ) {
-                    if($field['pos'] != ''){
-                        $author_id = $field['pos'];
+                if ( $repeatable_fields ){
+                    foreach ( $repeatable_fields as $key => $value ) {
+                        foreach ($value as $item){?>
+                            <tr>
+                                <td><input type="text" class="widefat" name="crew-job[]" value="<?php echo esc_attr( $item ); ?>" /></td>
+                                <td><?php 
+                                    echo "<select id='th_show_crew' name='crew-person[]'>";
+                                    // Query the authors here
+                                    $query = new WP_Query( 'post_type=theatre_person' );
+                                    while ( $query->have_posts() ) {
+                                        $query->the_post();
+                                        $id = get_the_ID();
+                                        if($id == $key){
+                                            echo '<option selected value=' . $id . '>' . get_the_title() . '</option>';
+                                        } else {
+                                            echo '<option value=' . $id . '>' . get_the_title() . '</option>';
+                                        }
+                                        
+                                    }
+                                    echo "</select>";
+                                ?></td>
+                                <td><a class="button remove-row" href="#">Remove</a></td>
+                            </tr>
+                        <?php }
                     }
+                }
                 ?>
-                <tr>
-                    <td><input type="text" class="widefat" name="job[]" value="<?php echo esc_attr( $field['job'] ); ?>" /></td>
-                    <td><?php 
-                        echo "<select id='th_show_crew' name='pos[]'>";
-                        // Query the authors here
-                        $query = new WP_Query( 'post_type=theatre_person' );
-                        while ( $query->have_posts() ) {
-                            $query->the_post();
-                            $id = get_the_ID();
-                            $selected = "";
-
-                            if($id == $author_id){
-                                echo '<option selected="selected" value=' . $id . '>' . get_the_title() . '</option>';
-                            } else {
-                                echo '<option value=' . $id . '>' . get_the_title() . '</option>';
-                            }
-                            
-                        }
-                        echo "</select>";
-                    ?></td>
-                    <td><a class="button remove-row" href="#">Remove</a></td>
-                </tr>
-                <?php
-                } 
-                endif; ?>
 
                 <!-- empty hidden one for jQuery -->
-                <tr class="empty-row screen-crew-text">
-                    <td><input type="text" class="widefat" name="job[]" /></td>
+                <tr class="empty-crew-row screen-reader-text">
+                    <td><input type="text" class="widefat" name="crew-job[]" /></td>
                     <td><?php 
-                        echo "<select id='th_show_crew' name='pos[]'>";
+                        echo "<select id='th_show_crew' name='crew-person[]'>";
                         // Query the authors here
                         $query = new WP_Query( 'post_type=theatre_person' );
                         while ( $query->have_posts() ) {

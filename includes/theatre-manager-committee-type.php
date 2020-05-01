@@ -137,19 +137,42 @@ function theatre_manager_committee_member_save($post_id, $post){
     $count = count( $members );
 
     for ( $i = 0; $i < $count; $i++ ) {
-        if ( $postitions[$i] != '' ) :
-            $new[$i]['postition'] = stripslashes( strip_tags( $postitions[$i] ) );
-
-            if ( $members[$i] == '' )
-                $new[$i]['member'] = '';
-            else
-                $new[$i]['member'] = stripslashes( $members[$i] ); // and however you want to sanitize
-        endif;
+        if ( $postitions[$i] != '' ) {
+            if ( $members[$i] != '' ){
+                if (array_key_exists($members[$i], $new)){
+                    array_push($new[$members[$i]], $postitions[$i]);
+                } else {
+                    $new[$members[$i]] = array( stripslashes( strip_tags( $postitions[$i] )));
+                }
+            }
+        }
     }
-    if ( !empty( $new ) && $new != $old )
+    if ( !empty( $new ) && $new != $old ) {
         update_post_meta( $post_id, 'th_committee_member_data', $new );
-    elseif ( empty($new) && $old )
+    } elseif ( empty($new) && $old ) {
         delete_post_meta( $post_id, 'th_committee_member_data', $old );
+    }
+
+    $known = array();
+    //Compare two arrays, find added items
+    foreach ($new as $committee => $roles) {
+        array_push($known, $committee);
+        if (metadata_exists('theatre_person', $committee, 'th_committee_roles')){
+            $committee_roles = get_post_meta($committee, 'th_committee_roles', true);
+        } else {
+            $committee_roles = array();
+        }
+        $committee_known = $committee_roles[$post_id];
+        if (!($committee_known === $roles)){
+            $committee_roles[$post_id] = $roles;
+        }
+        update_post_meta($committee, 'th_committee_roles', $committee_roles);
+    }
+    foreach($old as $committee => $roles){
+        if (!in_array($committee, $known)){
+            delete_post_meta($committee, 'th_committee_roles');
+        }
+    }
 }
 
 //-----------------------------------------------------------------------------------------

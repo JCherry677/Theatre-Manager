@@ -48,3 +48,19 @@ function theatre_manager_deactivate() {
     flush_rewrite_rules();
 }
 register_deactivation_hook( __FILE__, 'theatre_manager_deactivate' );
+
+/**
+ * Utility Functions
+ * theatre_manager_name_lookup - get name from id
+ * @since 0.6
+ */
+function theatre_manager_name_lookup($name_id, $type){
+    $query = new WP_Query( 'post_type=' . $type );
+    while ( $query->have_posts() ) {
+        $query->the_post();
+        $id = get_the_ID();
+        if($id == $name_id){
+            return get_the_title();
+        }
+    }
+}

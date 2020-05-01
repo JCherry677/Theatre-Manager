@@ -318,19 +318,42 @@ function theatre_manager_show_person_save($post_id, $post){
     $count = count( $actors );
 
     for ( $i = 0; $i < $count; $i++ ) {
-        if ( $roles[$i] != '' ) :
-            $new[$i]['role'] = stripslashes( strip_tags( $roles[$i] ) );
-
-            if ( $actors[$i] == '' )
-                $new[$i]['actor'] = '';
-            else
-                $new[$i]['actor'] = stripslashes( $actors[$i] ); // and however you want to sanitize
-        endif;
+        if ( $roles[$i] != '' ) {
+            if ( $actors[$i] != '' ){
+                if (array_key_exists($actors[$i], $new)){
+                    array_push($new[$actors[$i]], $roles[$i]);
+                } else {
+                    $new[$actors[$i]] = array( stripslashes( strip_tags( $roles[$i] )));
+                }
+            }
+        }
     }
-    if ( !empty( $new ) && $new != $old )
+    if ( !empty( $new ) && $new != $old ){
         update_post_meta( $post_id, 'th_show_person_info_data', $new );
-    elseif ( empty($new) && $old )
+    } elseif ( empty($new) && $old ) {
         delete_post_meta( $post_id, 'th_show_person_info_data', $old );
+    }
+    
+    $known = array();
+    //Compare two arrays, find added items
+    foreach ($new as $actor => $roles) {
+        array_push($known, $actor);
+        if (metadata_exists('theatre_person', $actor, 'th_show_roles')){
+            $actor_shows = get_post_meta($actor, 'th_show_roles', true);
+        } else {
+            $actor_shows = array();
+        }
+        $actor_known = $actor_shows[$post_id];
+        if (!($actor_known === $roles)){
+            $actor_shows[$post_id] = $roles;
+        }
+        update_post_meta($actor, 'th_show_roles', $actor_shows);
+    }
+    foreach($old as $actor => $roles){
+        if (!in_array($actor, $known)){
+            delete_post_meta($actor, 'th_show_roles');
+        }
+    }
 }
 
 //------------------------------------------------------------------------------------------
@@ -367,25 +390,48 @@ function theatre_manager_show_crew_save($post_id, $post){
     $old = get_post_meta($post_id, 'th_show_crew_info_data', true);
     $new = array();
 
-    $persons = $_POST['pos'];
-    $jobs = $_POST['job'];
+    $persons = $_POST['crew-person'];
+    $jobs = $_POST['crew-job'];
 
     $count = count( $persons );
 
     for ( $i = 0; $i < $count; $i++ ) {
-        if ( $jobs[$i] != '' ) :
-            $new[$i]['job'] = stripslashes( strip_tags( $jobs[$i] ) );
-
-            if ( $persons[$i] == '' )
-                $new[$i]['pos'] = '';
-            else
-                $new[$i]['pos'] = stripslashes( $persons[$i] ); // and however you want to sanitize
-        endif;
-    }
-    if ( !empty( $new ) && $new != $old )
-        update_post_meta( $post_id, 'th_show_crew_info_data', $new );
-    elseif ( empty($new) && $old )
+        if ( $jobs[$i] != '' ) {
+            if ( $persons[$i] != '' ){
+                if (array_key_exists($persons[$i], $new)){
+                    array_push($new[$persons[$i]], $jobs[$i]);
+                } else {
+                    $new[$persons[$i]] = array( stripslashes( strip_tags( $jobs[$i] )));
+                }
+            }
+        }
+    }        
+    if ( empty($new) && $old ){
         delete_post_meta( $post_id, 'th_show_crew_info_data', $old );
+    } else{
+        update_post_meta( $post_id, 'th_show_crew_info_data', $new );
+    }
+
+    $known = array();
+    //Compare two arrays, find added items
+    foreach ($new as $person => $roles) {
+        array_push($known, $person);
+        if (metadata_exists('theatre_person', $person, 'th_crew_roles')){
+            $person_shows = get_post_meta($person, 'th_crew_roles', true);
+        } else {
+            $person_shows = array();
+        }
+        $person_known = $person_shows[$post_id];
+        if (!($person_known === $roles)){
+            $person_shows[$post_id] = $roles;
+        }
+        update_post_meta($person, 'th_crew_roles', $person_shows);
+    }
+    foreach($old as $person => $roles){
+        if (!in_array($person, $known)){
+            delete_post_meta($person, 'th_crew_roles');
+        }
+    }
 }
 
 //------------------------------------------------------------------------------------------
@@ -475,8 +521,8 @@ function theatre_manager_show_shortcode() {
     if ($author == "") $author =  "unknown";
     $start = implode(" ", get_post_meta(get_the_ID(), 'th_show_info_start_date'));
     $end = implode(" ", get_post_meta(get_the_ID(), 'th_show_info_end_date'));
-    $cast = get_post_meta(get_the_ID(), 'th_show_person_info_data');
-    $crew = get_post_meta(get_the_ID(), 'th_show_crew_info_data');
+    $cast = get_post_meta(get_the_ID(), 'th_show_person_info_data', true);
+    $crew = get_post_meta(get_the_ID(), 'th_show_crew_info_data', true);
     $reviews = get_post_meta(get_the_ID(), 'th_show_review_data');
     //basic data
     $data = "<table><tbody>
@@ -485,18 +531,18 @@ function theatre_manager_show_shortcode() {
     //cast data
     $data = $data . "<tr><td>Cast</td><td><table><tbody>";
     $casttext = "";
-    foreach ( $cast as $field ) {
-        foreach ($field as $item){
-            $casttext = $casttext . "<tr><td>" . theatre_manager_show_person_lookup($item['actor']) . " as " . $item['role'] . "</td></tr>";
+    foreach ( $cast as $actor => $role ) {
+        foreach ($role as $item){
+            $casttext = $casttext . "<tr><td>" . theatre_manager_name_lookup($actor, 'theatre_person') . " as " . $item . "</td></tr>";
         }
     }
     $data = $data . $casttext . "</tbody></table></td></tr>";
     //crew data
     $data = $data . "<tr><td>Crew</td><td><table><tbody>";
     $casttext = "";
-    foreach ( $crew as $field ) {
-        foreach ($field as $item){
-            $casttext = $casttext . "<tr><td>" . theatre_manager_show_person_lookup($item['pos']) . " as " . $item['job'] . "</td></tr>";
+    foreach ( $crew as $pos => $job ) {
+        foreach ($job as $item){
+            $casttext = $casttext . "<tr><td>" . theatre_manager_name_lookup($pos, 'theatre_person') . " as " . $item . "</td></tr>";
         }
     }
     $data = $data . $casttext . "</tbody></table></td></tr>";
@@ -511,17 +557,6 @@ function theatre_manager_show_shortcode() {
     $data = $data . $casttext . "</tbody></table></td></tr>";
     //return all
     return $data . "</tbody></table>";
-}
-
-function theatre_manager_show_person_lookup($name_id){
-    $query = new WP_Query( 'post_type=theatre_person' );
-    while ( $query->have_posts() ) {
-        $query->the_post();
-        $id = get_the_ID();
-        if($id == $name_id){
-            return get_the_title();
-        }
-    }
 }
 add_shortcode( 'show_data', 'theatre_manager_show_shortcode' );
 

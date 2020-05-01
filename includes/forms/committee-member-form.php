@@ -71,38 +71,35 @@
             <tbody>
                 <?php
                 $repeatable_fields = get_post_meta($post->ID, 'th_committee_member_data', true);
-                if ( $repeatable_fields ) :
+                if ( $repeatable_fields ) {
 
-                foreach ( $repeatable_fields as $field ) {
-                    if($field['member'] != ''){
-                        $author_id = $field['member'];
-                    }
-                ?>
-                <tr>
-                    <td><input type="text" class="widefat" name="postition[]" value="<?php echo esc_attr( $field['postition'] ); ?>" /></td>
-                    <td><?php 
-                        echo "<select id='th_show_person' name='member[]'>";
-                        // Query the authors here
-                        $query = new WP_Query( 'post_type=theatre_person' );
-                        while ( $query->have_posts() ) {
-                            $query->the_post();
-                            $id = get_the_ID();
-                            $selected = "";
+                    foreach ( $repeatable_fields as $key => $value ) {
+                        foreach ($value as $item){?>
+                            <tr>
+                                <td><input type="text" class="widefat" name="postition[]" value="<?php echo esc_attr( $item ); ?>" /></td>
+                                <td><?php 
+                                    echo "<select id='th_show_person' name='member[]'>";
+                                    // Query the authors here
+                                    $query = new WP_Query( 'post_type=theatre_person' );
+                                    while ( $query->have_posts() ) {
+                                        $query->the_post();
+                                        $id = get_the_ID();
+                                        $selected = "";
 
-                            if($id == $author_id){
-                                echo '<option selected="selected" value=' . $author_id . '>' . get_the_title() . '</option>';
-                            } else {
-                                echo '<option value=' . $id . '>' . get_the_title() . '</option>';
-                            }
-                            
-                        }
-                        echo "</select>";
-                    ?></td>
-                    <td><a class="button remove-row" href="#">Remove</a></td>
-                </tr>
-                <?php
-                } 
-                endif; ?>
+                                        if($id == $key){
+                                            echo '<option selected value=' . $id . '>' . get_the_title() . '</option>';
+                                        } else {
+                                            echo '<option value=' . $id . '>' . get_the_title() . '</option>';
+                                        }
+                                        
+                                    }
+                                    echo "</select>";
+                                ?></td>
+                                <td><a class="button remove-row" href="#">Remove</a></td>
+                            </tr>
+                        <?php }
+                    } 
+                }?>
 
                 <!-- empty hidden one for jQuery -->
                 <tr class="empty-cast-row screen-reader-text">
