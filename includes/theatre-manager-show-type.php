@@ -311,19 +311,21 @@ function theatre_manager_show_person_save($post_id, $post){
     // We do want to save? Ok!
     $old = get_post_meta($post_id, 'th_show_person_info_data', true);
     $new = array();
+    $known = array();
 
-    $actors = $_POST['actor'];
+    $members = $_POST['actor'];
     $roles = $_POST['role'];
 
-    $count = count( $actors );
+    $count = count( $members );
 
     for ( $i = 0; $i < $count; $i++ ) {
         if ( $roles[$i] != '' ) {
-            if ( $actors[$i] != '' ){
-                if (array_key_exists($actors[$i], $new)){
-                    array_push($new[$actors[$i]], $roles[$i]);
+            if ( $members[$i] != '' ){
+                if (array_key_exists($members[$i], $new)){
+                    array_push($new[$members[$i]], $roles[$i]);
                 } else {
-                    $new[$actors[$i]] = array( stripslashes( strip_tags( $roles[$i] )));
+                    $new[$members[$i]] = array( stripslashes( strip_tags( $roles[$i] )));
+                    array_push($known, $members[$i]);
                 }
             }
         }
@@ -334,24 +336,42 @@ function theatre_manager_show_person_save($post_id, $post){
         delete_post_meta( $post_id, 'th_show_person_info_data', $old );
     }
     
-    $known = array();
-    //Compare two arrays, find added items
-    foreach ($new as $actor => $roles) {
-        array_push($known, $actor);
-        if (metadata_exists('theatre_person', $actor, 'th_show_roles')){
-            $actor_shows = get_post_meta($actor, 'th_show_roles', true);
+    //save committee details in person metadata 
+    foreach ($known as $person){
+        $member_new = array(); //create new array to store new data in
+        $show_roles = get_post_meta($person, 'th_show_roles', true);
+        $member_new[$post_id] = $new[$person];
+        if (empty($show_roles)){            
+            $member_new[$post_id] = $new[$person];
         } else {
-            $actor_shows = array();
+            //go through all current stored data
+            foreach ($show_roles as $show => $role) {
+                if ( (abs($show-$post_id) < PHP_FLOAT_EPSILON)){
+                    //update if same
+                    $member_new[$show] = $new[$person];
+                } else {
+                    //copy if not relevant
+                    $member_new[$show] = $role;
+                }
+            }
         }
-        $actor_known = $actor_shows[$post_id];
-        if (!($actor_known === $roles)){
-            $actor_shows[$post_id] = $roles;
-        }
-        update_post_meta($actor, 'th_show_roles', $actor_shows);
+        
+        update_post_meta($person, 'th_show_roles', $member_new);
     }
-    foreach($old as $actor => $roles){
-        if (!in_array($actor, $known)){
-            delete_post_meta($actor, 'th_show_roles');
+
+    //remove records that no longer appear in data
+    foreach ($old as $key => $value){
+        if (!(in_array($key, $known))){
+            $member_new = array();
+            $show_roles = get_post_meta($key, 'th_show_roles', true);
+            foreach ($show_roles as $show => $role) {
+                if ( (abs($show-$post_id) < PHP_FLOAT_EPSILON)){
+                    //remove by not adding it
+                } else {
+                    $member_new[$show] = $role;
+                }
+            }
+            update_post_meta($key, 'th_show_roles', $member_new);
         }
     }
 }
@@ -387,21 +407,23 @@ function theatre_manager_show_crew_save($post_id, $post){
         return;
 
     // We do want to save? Ok!
-    $old = get_post_meta($post_id, 'th_show_crew_info_data', true);
+    $old = get_post_meta($post_id, 'th_show_crew_info_data');
     $new = array();
+    $known = array();
 
-    $persons = $_POST['crew-person'];
+    $members = $_POST['crew-person'];
     $jobs = $_POST['crew-job'];
 
-    $count = count( $persons );
+    $count = count( $members );
 
     for ( $i = 0; $i < $count; $i++ ) {
         if ( $jobs[$i] != '' ) {
-            if ( $persons[$i] != '' ){
-                if (array_key_exists($persons[$i], $new)){
-                    array_push($new[$persons[$i]], $jobs[$i]);
+            if ( $members[$i] != '' ){
+                if (array_key_exists($members[$i], $new)){
+                    array_push($new[$members[$i]], $jobs[$i]);
                 } else {
-                    $new[$persons[$i]] = array( stripslashes( strip_tags( $jobs[$i] )));
+                    $new[$members[$i]] = array( stripslashes( strip_tags( $jobs[$i] )));
+                    array_push($known, $members[$i]);
                 }
             }
         }
@@ -412,24 +434,42 @@ function theatre_manager_show_crew_save($post_id, $post){
         update_post_meta( $post_id, 'th_show_crew_info_data', $new );
     }
 
-    $known = array();
-    //Compare two arrays, find added items
-    foreach ($new as $person => $roles) {
-        array_push($known, $person);
-        if (metadata_exists('theatre_person', $person, 'th_crew_roles')){
-            $person_shows = get_post_meta($person, 'th_crew_roles', true);
+    //save committee details in person metadata 
+    foreach ($known as $person){
+        $member_new = array(); //create new array to store new data in
+        $crew_roles = get_post_meta($person, 'th_crew_roles', true);
+        $member_new[$post_id] = $new[$person];
+        if (empty($crew_roles)){            
+            $member_new[$post_id] = $new[$person];
         } else {
-            $person_shows = array();
+            //go through all current stored data
+            foreach ($crew_roles as $show => $role) {
+                if ( (abs($show-$post_id) < PHP_FLOAT_EPSILON)){
+                    //update if same
+                    $member_new[$show] = $new[$person];
+                } else {
+                    //copy if not relevant
+                    $member_new[$show] = $role;
+                }
+            }
         }
-        $person_known = $person_shows[$post_id];
-        if (!($person_known === $roles)){
-            $person_shows[$post_id] = $roles;
-        }
-        update_post_meta($person, 'th_crew_roles', $person_shows);
+        
+        update_post_meta($person, 'th_crew_roles', $member_new);
     }
-    foreach($old as $person => $roles){
-        if (!in_array($person, $known)){
-            delete_post_meta($person, 'th_crew_roles');
+
+    //remove records that no longer appear in data
+    foreach ($old as $key => $value){
+        if (!(in_array($key, $known))){
+            $member_new = array();
+            $crew_roles = get_post_meta($key, 'th_crew_roles', true);
+            foreach ($crew_roles as $show => $role) {
+                if ( (abs($show-$post_id) < PHP_FLOAT_EPSILON)){
+                    //remove by not adding it
+                } else {
+                    $member_new[$show] = $role;
+                }
+            }
+            update_post_meta($key, 'th_crew_roles', $member_new);
         }
     }
 }

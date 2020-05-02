@@ -130,6 +130,7 @@ function theatre_manager_committee_member_save($post_id, $post){
     // We do want to save? Ok!
     $old = get_post_meta($post_id, 'th_committee_member_data', true);
     $new = array();
+    $known = array();
 
     $members = $_POST['member'];
     $postitions = $_POST['postition'];
@@ -143,6 +144,7 @@ function theatre_manager_committee_member_save($post_id, $post){
                     array_push($new[$members[$i]], $postitions[$i]);
                 } else {
                     $new[$members[$i]] = array( stripslashes( strip_tags( $postitions[$i] )));
+                    array_push($known, $members[$i]);
                 }
             }
         }
@@ -153,24 +155,43 @@ function theatre_manager_committee_member_save($post_id, $post){
         delete_post_meta( $post_id, 'th_committee_member_data', $old );
     }
 
-    $known = array();
-    //Compare two arrays, find added items
-    foreach ($new as $committee => $roles) {
-        array_push($known, $committee);
-        if (metadata_exists('theatre_person', $committee, 'th_committee_roles')){
-            $committee_roles = get_post_meta($committee, 'th_committee_roles', true);
+    //save committee details in person metadata    
+    foreach ($known as $person){
+        //create new array to store new data in
+        $member_new = array();
+        $committee_roles = get_post_meta($person, 'th_committee_roles', true);
+        $member_new[$post_id] = $new[$person];
+        if (empty($committee_roles)){            
+            $member_new[$post_id] = $new[$person];
         } else {
-            $committee_roles = array();
+            //go through all current stored data
+            foreach ($committee_roles as $committee => $role) {
+                if ( (abs($committee-$post_id) < PHP_FLOAT_EPSILON)){
+                    //update if same
+                    $member_new[$committee] = $new[$person];
+                } else {
+                    //copy if not relevant
+                    $member_new[$committee] = $role;
+                }
+            }
         }
-        $committee_known = $committee_roles[$post_id];
-        if (!($committee_known === $roles)){
-            $committee_roles[$post_id] = $roles;
-        }
-        update_post_meta($committee, 'th_committee_roles', $committee_roles);
+        //save
+        update_post_meta($person, 'th_committee_roles', $member_new);
     }
-    foreach($old as $committee => $roles){
-        if (!in_array($committee, $known)){
-            delete_post_meta($committee, 'th_committee_roles');
+    
+    //remove records that no longer appear in data
+    foreach ($old as $key => $value){
+        if (!(in_array($key, $known))){
+            $member_new = array();
+            $committee_roles = get_post_meta($key, 'th_committee_roles', true);
+            foreach ($committee_roles as $committee => $role) {
+                if ( (abs($committee-$post_id) < PHP_FLOAT_EPSILON)){
+                    //remove by not adding it
+                } else {
+                    $member_new[$committee] = $role;
+                }
+            }
+            update_post_meta($key, 'th_committee_roles', $member_new);
         }
     }
 }
