@@ -1,7 +1,11 @@
 <script type="text/javascript">
+    var th_ajax_url = '<?php echo admin_url('admin-ajax.php'); ?>';
     jQuery(document).ready(function( $ ){
         $( '#add-row' ).on('click', function() {
-            var row = $( '.empty-cast-row.screen-reader-text' ).clone(true);
+            var row = $( '.empty-cast-row.screen-reader-text' ).clone(true).on('focus', function(){
+            $(this).suggest(th_ajax_url + '?action=th_person_lookup', {minchars:1});
+            return false;
+        });
             row.removeClass( 'empty-cast-row screen-reader-text' );
             row.insertBefore( '#repeatable-fieldset-one tbody>tr:last' );
             return false;
@@ -11,25 +15,33 @@
             $(this).parents('tr').remove();
             return false;
         });
+        $('.th_person_search_class').on('focus', function(){
+            $(this).suggest(th_ajax_url + '?action=th_person_lookup', {minchars:1});
+            return false;
+        });
     });
 </script>
 <style scoped>
     .th_show_person_info{
-        width: 50%;
+        width: 70%;
         display: flex;
         flex-direction: column;
         flex-wrap: wrap;
+        margin: auto;
+        text-align:center;
     }
 
     .th_show_person_info_row{
         display: flex;
         flex-direction: row;
         flex-wrap: wrap;
+        text-align:center;
     }
 
     .th_show_person_info_field{
         flex-shrink: 2;
         margin:5px;
+        text-align:center;
     }
 
     .th_show_person_info > .th_show_person_info_field {
@@ -60,6 +72,9 @@
 </style>
 <div class="th_show_person_info">
     <div class="th_show_person_info_field">
+        <p style="font-weight: bold;">Members must be added first before adding them to a show!</p>
+        <p>Member names should be added to the Actors box in the format <code>name (id)</code></p>
+        <p>Enter the member's first name and then use the dropdown to ensure this format is correct</p>
         <table id="repeatable-fieldset-one" width="100%">
             <thead>
                 <tr>
@@ -77,22 +92,7 @@
                         foreach ($value as $item){?>
                             <tr>
                                 <td><input type="text" class="widefat" name="role[]" value="<?php echo esc_attr( $item ); ?>" /></td>
-                                <td><?php 
-                                    echo "<select id='th_show_person' name='actor[]'>";
-                                    // Query the authors here
-                                    $query = new WP_Query( 'post_type=theatre_person' );
-                                    while ( $query->have_posts() ) {
-                                        $query->the_post();
-                                        $id = get_the_ID();
-                                        if($id == $key){
-                                            echo '<option selected value=' . $id . '>' . get_the_title() . '</option>';
-                                        } else {
-                                            echo '<option value=' . $id . '>' . get_the_title() . '</option>';
-                                        }
-                                        
-                                    }
-                                    echo "</select>";
-                                ?></td>
+                                <td><input type="text" class="widefat th_person_search_class" name="actor[]" value="<?php echo esc_attr(theatre_manager_name_lookup($key, 'theatre_person') . " (" . $key . ")" )?>" /></td>
                                 <td><a class="button remove-row" href="#">Remove</a></td>
                             </tr>
                             <?php
@@ -103,18 +103,7 @@
                 <!-- empty hidden one for jQuery -->
                 <tr class="empty-cast-row screen-reader-text">
                     <td><input type="text" class="widefat" name="role[]" /></td>
-                    <td><?php 
-                        echo "<select id='th_show_person' name='actor[]'>";
-                        // Query the authors here
-                        $query = new WP_Query( 'post_type=theatre_person' );
-                        while ( $query->have_posts() ) {
-                            $query->the_post();
-                            $id = get_the_ID();
-
-                            echo '<option value=' . $id . '>' . get_the_title() . '</option>';
-                        }
-                        echo "</select>";
-                    ?></td>
+                    <td><input type="text" class="widefat th_person_search_class" name="actor[]" value="" /></td>
                     <td><a class="button remove-row" href="#">Remove</a></td>
                 </tr>
             </tbody>

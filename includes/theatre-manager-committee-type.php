@@ -140,6 +140,7 @@ function theatre_manager_committee_member_save($post_id, $post){
     for ( $i = 0; $i < $count; $i++ ) {
         if ( $postitions[$i] != '' ) {
             if ( $members[$i] != '' ){
+                $members[$i] = substr($members[$i], -3, 2);
                 if (array_key_exists($members[$i], $new)){
                     array_push($new[$members[$i]], $postitions[$i]);
                 } else {

@@ -5,7 +5,7 @@
  * @wordpress-plugin
  * Plugin Name: Theatre Manager
  * Description: A plugin to manage theatrical productions, storing infomation about who is involved. Can also be used as an archive
- * Version: 0.6
+ * Version: 0.7
  * Requires at least: 5.4
  * Requires PHP: 7.4
  * Author: John
@@ -51,6 +51,9 @@ register_deactivation_hook( __FILE__, 'theatre_manager_deactivate' );
 
 /**
  * Utility Functions
+ */
+
+/** 
  * theatre_manager_name_lookup - get name from id
  * @since 0.6
  */
@@ -63,4 +66,35 @@ function theatre_manager_name_lookup($name_id, $type){
             return get_the_title();
         }
     }
+}
+/**
+ * Utility Functions for autocomplete text
+ * @since 0.7
+ */
+add_action('wp_enqueue_scripts', 'se_wp_enqueue_scripts');
+function se_wp_enqueue_scripts() {
+    wp_enqueue_script('suggest');
+}
+
+add_action('wp_ajax_th_person_lookup', 'th_person_lookup');
+add_action('wp_ajax_nopriv_th_person_lookup', 'th_person_lookup');
+
+function th_person_lookup() {
+    global $wpdb;
+
+    $search = $wpdb->esc_like($_REQUEST['q']);
+
+    $query = 'SELECT ID,post_title FROM ' . $wpdb->posts . '
+        WHERE post_title LIKE \'' . $search . '%\'
+        AND post_type = \'theatre_person\'
+        AND post_status = \'publish\'
+        ORDER BY post_title ASC';
+    $rows = $wpdb->get_results($query);
+    foreach ($rows as $row) {
+        $post_title = $row->post_title;
+        $id = $row->ID;
+        $text = $post_title . " (" . $id . ")\n";
+        echo $text;
+    }
+    wp_die();
 }

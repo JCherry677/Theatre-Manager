@@ -321,6 +321,7 @@ function theatre_manager_show_person_save($post_id, $post){
     for ( $i = 0; $i < $count; $i++ ) {
         if ( $roles[$i] != '' ) {
             if ( $members[$i] != '' ){
+                $members[$i] = substr($members[$i], -3, 2);
                 if (array_key_exists($members[$i], $new)){
                     array_push($new[$members[$i]], $roles[$i]);
                 } else {
@@ -419,6 +420,7 @@ function theatre_manager_show_crew_save($post_id, $post){
     for ( $i = 0; $i < $count; $i++ ) {
         if ( $jobs[$i] != '' ) {
             if ( $members[$i] != '' ){
+                $members[$i] = substr($members[$i], -3, 2);
                 if (array_key_exists($members[$i], $new)){
                     array_push($new[$members[$i]], $jobs[$i]);
                 } else {

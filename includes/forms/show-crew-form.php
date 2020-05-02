@@ -1,7 +1,10 @@
 <script type="text/javascript">
     jQuery(document).ready(function( $ ){
         $( '#add-crew-row' ).on('click', function() {
-            var row = $( '.empty-crew-row.screen-reader-text' ).clone(true);
+            var row = $( '.empty-crew-row.screen-reader-text' ).clone(true).on('focus', function(){
+            $(this).suggest(th_ajax_url + '?action=th_person_lookup', {minchars:1});
+            return false;
+        });
             row.removeClass( 'empty-crew-row screen-reader-text' );
             row.insertBefore( '#repeatable-fieldset-two tbody>tr:last' );
             return false;
@@ -13,53 +16,11 @@
         });
     });
 </script>
-<style scoped>
-    .th_show_person_info{
-        width: 50%;
-        display: flex;
-        flex-direction: column;
-        flex-wrap: wrap;
-    }
-
-    .th_show_person_info_row{
-        display: flex;
-        flex-direction: row;
-        flex-wrap: wrap;
-    }
-
-    .th_show_person_info_field{
-        flex-shrink: 2;
-        margin:5px;
-    }
-
-    .th_show_person_info > .th_show_person_info_field {
-        padding-bottom: 5px;
-        border-bottom: 1px #ddd solid;
-    }
-
-    .th_show_person_info > .th_show_person_info_field > label{
-        float: left;
-        width: 150px;
-        vertical-align: center;
-    }
-
-    select{
-        float: left;
-        width: 100%;
-        vertical-align: center;
-    }
-
-    .th_show_person_info > .th_show_person_info_field > input {
-        width: 280px;
-    }
-
-    .nomargin {
-        margin:0 0 0 5px;
-        font-weight: bold;
-    }
-</style>
 <div class="th_show_person_info">
     <div class="th_show_person_info_field">
+        <p style="font-weight: bold;">Members must be added first before adding them to a show!</p>
+        <p>Member names should be added to the Actors box in the format <code>name (id)</code></p>
+        <p>Enter the member's first name and then use the dropdown to ensure this format is correct</p>
         <table id="repeatable-fieldset-two" width="100%">
             <thead>
                 <tr>
@@ -76,22 +37,7 @@
                         foreach ($value as $item){?>
                             <tr>
                                 <td><input type="text" class="widefat" name="crew-job[]" value="<?php echo esc_attr( $item ); ?>" /></td>
-                                <td><?php 
-                                    echo "<select id='th_show_crew' name='crew-person[]'>";
-                                    // Query the authors here
-                                    $query = new WP_Query( 'post_type=theatre_person' );
-                                    while ( $query->have_posts() ) {
-                                        $query->the_post();
-                                        $id = get_the_ID();
-                                        if($id == $key){
-                                            echo '<option selected value=' . $id . '>' . get_the_title() . '</option>';
-                                        } else {
-                                            echo '<option value=' . $id . '>' . get_the_title() . '</option>';
-                                        }
-                                        
-                                    }
-                                    echo "</select>";
-                                ?></td>
+                                <td><input type="text" class="widefat th_person_search_class" name="crew-person[]" value="<?php echo esc_attr(theatre_manager_name_lookup($key, 'theatre_person') . " (" . $key . ")" )?>" /></td>
                                 <td><a class="button remove-row" href="#">Remove</a></td>
                             </tr>
                         <?php }
@@ -102,18 +48,7 @@
                 <!-- empty hidden one for jQuery -->
                 <tr class="empty-crew-row screen-reader-text">
                     <td><input type="text" class="widefat" name="crew-job[]" /></td>
-                    <td><?php 
-                        echo "<select id='th_show_crew' name='crew-person[]'>";
-                        // Query the authors here
-                        $query = new WP_Query( 'post_type=theatre_person' );
-                        while ( $query->have_posts() ) {
-                            $query->the_post();
-                            $id = get_the_ID();
-
-                            echo '<option value=' . $id . '>' . get_the_title() . '</option>';
-                        }
-                        echo "</select>";
-                    ?></td>
+                    <td><input type="text" class="widefat th_person_search_class" name="crew-person[]" value="" /></td>
                     <td><a class="button remove-row" href="#">Remove</a></td>
                 </tr>
             </tbody>
