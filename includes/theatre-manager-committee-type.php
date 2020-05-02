@@ -140,12 +140,12 @@ function theatre_manager_committee_member_save($post_id, $post){
     for ( $i = 0; $i < $count; $i++ ) {
         if ( $postitions[$i] != '' ) {
             if ( $members[$i] != '' ){
-                $members[$i] = substr($members[$i], -3, 2);
-                if (array_key_exists($members[$i], $new)){
-                    array_push($new[$members[$i]], $postitions[$i]);
+                preg_match('#\((.*?)\)#', $members[$i], $match);
+                if (array_key_exists($match[1], $new)){
+                    array_push($new[$match[1]], $postitions[$i]);
                 } else {
-                    $new[$members[$i]] = array( stripslashes( strip_tags( $postitions[$i] )));
-                    array_push($known, $members[$i]);
+                    $new[$match[1]] = array( stripslashes( strip_tags( $postitions[$i] )));
+                    array_push($known, $match[1]);
                 }
             }
         }

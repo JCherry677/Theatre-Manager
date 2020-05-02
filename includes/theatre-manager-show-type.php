@@ -321,12 +321,12 @@ function theatre_manager_show_person_save($post_id, $post){
     for ( $i = 0; $i < $count; $i++ ) {
         if ( $roles[$i] != '' ) {
             if ( $members[$i] != '' ){
-                $members[$i] = substr($members[$i], -3, 2);
-                if (array_key_exists($members[$i], $new)){
-                    array_push($new[$members[$i]], $roles[$i]);
+                preg_match('#\((.*?)\)#', $members[$i], $match);
+                if (array_key_exists($match[1], $new)){
+                    array_push($new[$match[1]], $roles[$i]);
                 } else {
-                    $new[$members[$i]] = array( stripslashes( strip_tags( $roles[$i] )));
-                    array_push($known, $members[$i]);
+                    $new[$match[1]] = array( stripslashes( strip_tags( $roles[$i] )));
+                    array_push($known, $match[1]);
                 }
             }
         }
@@ -420,12 +420,12 @@ function theatre_manager_show_crew_save($post_id, $post){
     for ( $i = 0; $i < $count; $i++ ) {
         if ( $jobs[$i] != '' ) {
             if ( $members[$i] != '' ){
-                $members[$i] = substr($members[$i], -3, 2);
-                if (array_key_exists($members[$i], $new)){
-                    array_push($new[$members[$i]], $jobs[$i]);
+                preg_match('#\((.*?)\)#', $members[$i], $match);
+                if (array_key_exists($match[1], $new)){
+                    array_push($new[$match[1]], $jobs[$i]);
                 } else {
-                    $new[$members[$i]] = array( stripslashes( strip_tags( $jobs[$i] )));
-                    array_push($known, $members[$i]);
+                    $new[$match[1]] = array( stripslashes( strip_tags( $jobs[$i] )));
+                    array_push($known, $match[1]);
                 }
             }
         }

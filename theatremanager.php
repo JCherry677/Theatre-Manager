@@ -66,7 +66,24 @@ function theatre_manager_name_lookup($name_id, $type){
             return get_the_title();
         }
     }
+    return false;
 }
+/** 
+ * theatre_manager_id_lookup - get id from name
+ * @since 0.6
+ */
+function theatre_manager_id_lookup($name, $type){
+    $query = new WP_Query( 'post_type=' . $type );
+    while ( $query->have_posts() ) {
+        $query->the_post();
+        $title = get_the_title();
+        if($title == $name_id){
+            return get_the_ID();
+        }
+    }
+    return false;
+}
+
 /**
  * Utility Functions for autocomplete text
  * @since 0.7
