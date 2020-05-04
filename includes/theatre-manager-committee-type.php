@@ -4,7 +4,9 @@
  * @since 0.4
  */
 
-function theatre_manager_committee_type(){
+
+
+function tm_committee_type(){
     $labels = array(
         'name'               => __( 'Past Committees', 'post type general name' ),
         'singular_name'      => __( 'Committee', 'post type singular name' ),
@@ -26,7 +28,7 @@ function theatre_manager_committee_type(){
         'description'   => 'Contains information about our past committee shows',
         'public'        => true,
         'menu_position' => 40,
-        'supports'      => array( 'title', 'editor', 'revisions'),
+        'supports'      => array( 'title',),
         'rewrite'       => array('slug' => 'committee'),
         'show_in_rest'  => false, //true => Gutenberg editor, false => old editor
         'has_archive'   => true,
@@ -34,6 +36,7 @@ function theatre_manager_committee_type(){
 
     register_post_type('theatre_committee', $args);
 }
+add_action('init', 'tm_committee_type');
 
 //------------------------------------------------------------------------------------------
 /**
@@ -43,7 +46,7 @@ function theatre_manager_committee_type(){
  * @param array $messages Existing post update messages.
  * @return array Amended post update messages with new CPT update messages.
  */
-function theatre_manager_committee_messages( $messages ) {
+function tm_committee_messages( $messages ) {
     global $post, $post_ID;
     $messages['theatre_committee'] = array(
       0 => '’', 
@@ -60,6 +63,7 @@ function theatre_manager_committee_messages( $messages ) {
     );
     return $messages;
 }
+add_filter( 'post_updated_messages', 'tm_committee_messages' );
 
 //------------------------------------------------------------------------------------------
 /**
@@ -69,10 +73,11 @@ function theatre_manager_committee_messages( $messages ) {
  * @since 0.5
  */
 
-function theatre_manager_editor_committee_columns($columns){
+function tm_editor_committee_columns($columns){
     unset( $columns['date'] );
     return $columns;
 }
+add_filter( 'manage_theatre_committee_posts_columns', 'tm_editor_committee_columns' );
 
 //------------------------------------------------------------------------------------------
 /**
@@ -80,13 +85,14 @@ function theatre_manager_editor_committee_columns($columns){
  * @since 0.4
  */
 
-function theatre_manager_committee_enter_title( $input ) {
+function tm_committee_enter_title( $input ) {
     if ( 'theatre_committee' === get_post_type() ) {
         return __( 'Committee Season', 'your_textdomain' );
     }
 
     return $input;
 }
+add_filter( 'enter_title_here', 'tm_committee_enter_title' );
 
 //------------------------------------------------------------------------------------------
 /**
@@ -95,36 +101,36 @@ function theatre_manager_committee_enter_title( $input ) {
  * meta - committee Info
  * @since 0.4
  */
-function theatre_manager_committee_meta_boxes_setup(){
+function tm_committee_meta_boxes_setup(){
     //boxes
-    add_action('add_meta_boxes', 'theatre_manager_committee_member_meta');
+    add_action('add_meta_boxes', 'tm_committee_member_meta');
     //saves
-    add_action('save_post', 'theatre_manager_committee_member_save', 10, 2);
+    add_action('save_post', 'tm_committee_member_save', 10, 2);
 }
 
-function theatre_manager_committee_member_meta(){
+function tm_committee_member_meta(){
     add_meta_box(
         'theatre-manager-committee-member', //ID
         'Committee Members', //Title TODO: Internationalisation
-        'theatre_manager_committee_member_box', //callback function
+        'tm_committee_member_box', //callback function
         'theatre_committee', //post type
         'normal', //on-page location
         'core' //priority
     );
 }
 
-function theatre_manager_committee_member_box($post, $args){
-    wp_nonce_field( plugin_basename( __FILE__ ), 'theatre_manager_committee_member_nonce' );
+function tm_committee_member_box($post, $args){
+    wp_nonce_field( plugin_basename( __FILE__ ), 'tm_committee_member_nonce' );
     include plugin_dir_path( __FILE__ ) . 'forms/committee-member-form.php';
 }
 
-function theatre_manager_committee_member_save($post_id, $post){
+function tm_committee_member_save($post_id, $post){
     // Don't wanna save this now, right?
     if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
         return;
-    if ( !isset( $_POST['theatre_manager_committee_member_nonce'] ) )
+    if ( !isset( $_POST['tm_committee_member_nonce'] ) )
         return;
-    if ( !wp_verify_nonce( $_POST['theatre_manager_committee_member_nonce'], plugin_basename( __FILE__ ) ) )
+    if ( !wp_verify_nonce( $_POST['tm_committee_member_nonce'], plugin_basename( __FILE__ ) ) )
         return;
 
     // We do want to save? Ok!
@@ -196,6 +202,8 @@ function theatre_manager_committee_member_save($post_id, $post){
         }
     }
 }
+add_action( 'load-post.php', 'tm_committee_meta_boxes_setup' );
+add_action( 'load-post-new.php', 'tm_committee_meta_boxes_setup' );
 
 //-----------------------------------------------------------------------------------------
 /**
@@ -203,7 +211,7 @@ function theatre_manager_committee_member_save($post_id, $post){
  * Returns show data
  * @since 0.5
  */
-function theatre_manager_committee_shortcode() {
+function tm_committee_shortcode() {
     $people = get_post_meta(get_the_ID(), 'th_committee_member_data', true);
 
     //basic data
@@ -214,28 +222,10 @@ function theatre_manager_committee_shortcode() {
         foreach ($role as $item){
             $committeestext = $committeestext . "<tr><td>" . $item . "</td></tr>";
         }
-        $committeestext = $committeestext . "</tbody></table></td><td><a href=\"" . get_post_permalink($person)."\">" . theatre_manager_name_lookup($person, 'theatre_person') . "</td></tr>";
+        $committeestext = $committeestext . "</tbody></table></td><td><a href=\"" . get_post_permalink($person)."\">" . tm_name_lookup($person, 'theatre_person') . "</td></tr>";
     }
     $committeestext = $committeestext . "</tbody></table>";
     //return all
     return $committeestext;
 }
-
-//-----------------------------------------------------------------------------------------
-/** 
- * Add Actions/filters
- * @since 0.4
- */
-add_action('init', 'theatre_manager_committee_type');
-add_action( 'load-post.php', 'theatre_manager_committee_meta_boxes_setup' );
-add_action( 'load-post-new.php', 'theatre_manager_committee_meta_boxes_setup' );
-
-add_filter( 'post_updated_messages', 'theatre_manager_committee_messages' );
-add_filter( 'enter_title_here', 'theatre_manager_committee_enter_title' );
-add_filter( 'manage_theatre_committee_posts_columns', 'theatre_manager_editor_committee_columns' );
-
-/**
- * Add Shortcodes
- * @since 0.5
- */
-add_shortcode( 'committee_data', 'theatre_manager_committee_shortcode' );
+add_shortcode( 'committee_data', 'tm_committee_shortcode' );

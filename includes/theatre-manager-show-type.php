@@ -4,8 +4,11 @@
  * @since 0.1
  */
 
+// If called directly, abort
+if ( ! defined( 'ABSPATH' )) die;
+
 //create show type
-function theatre_manager_show_type(){
+function tm_show_type(){
     $labels = array(
         'name'               => __( 'Shows', 'post type general name' ),
         'singular_name'      => __( 'Show', 'post type singular name' ),
@@ -27,7 +30,7 @@ function theatre_manager_show_type(){
         'description'   => 'Contains information about past shows',
         'public'        => true,
         'menu_position' => 30,
-        'supports'      => array( 'title', 'editor', 'comments', 'revisions', 'thumbnail'),
+        'supports'      => array( 'title', 'editor', 'comments', 'thumbnail'),
         'rewrite'       => array('slug' => 'shows'),
         'show_in_rest'  => false, //true => Gutenberg editor, false => old editor
         'has_archive'   => true,
@@ -35,7 +38,7 @@ function theatre_manager_show_type(){
 
     register_post_type('theatre_show', $args);
 }
-add_action( 'init', 'theatre_manager_show_type' );
+add_action( 'init', 'tm_show_type' );
 
 //------------------------------------------------------------------------------------------
 /**
@@ -45,7 +48,7 @@ add_action( 'init', 'theatre_manager_show_type' );
  * @param array $messages Existing post update messages.
  * @return array Amended post update messages with new CPT update messages.
  */
-function theatre_manager_show_messages( $messages ) {
+function tm_show_messages( $messages ) {
     global $post, $post_ID;
     $messages['theatre_show'] = array(
       0 => '’', 
@@ -62,7 +65,7 @@ function theatre_manager_show_messages( $messages ) {
     );
     return $messages;
 }
-add_filter( 'post_updated_messages', 'theatre_manager_show_messages' );
+add_filter( 'post_updated_messages', 'tm_show_messages' );
 
 //------------------------------------------------------------------------------------------
 /**
@@ -157,7 +160,7 @@ add_action( 'init', 'create_show_taxonomies', 0 );
  * @since 0.5
  */
 
-function theatre_manager_editor_show_columns($columns){
+function tm_editor_show_columns($columns){
     unset( $columns['date'] );
     $columns['show_start'] = __( 'Start Date', 'theatre-manager');
     $columns['show_end'] = __( 'End Date', 'theatre-manager');
@@ -165,7 +168,7 @@ function theatre_manager_editor_show_columns($columns){
 }
 
 //get data
-function theatre_manager_show_columns( $column, $post_id ){
+function tm_show_columns( $column, $post_id ){
     switch ($column){
         case 'show_start':
             $start = get_post_meta($post_id, 'th_show_info_start_date', true);
@@ -179,13 +182,13 @@ function theatre_manager_show_columns( $column, $post_id ){
 }
 
 //make sortable
-function theatre_manager_show_columns_sortable( $columns ) {
+function tm_show_columns_sortable( $columns ) {
     $columns['show_start'] = 'show_start';
     $columns['show_end'] = 'show_end';
     return $columns;
 }
 
-function theatre_manager_show_orderby( $query ) {
+function tm_show_orderby( $query ) {
     if( ! is_admin() || ! $query->is_main_query() ) {
       return;
     }
@@ -198,10 +201,10 @@ function theatre_manager_show_orderby( $query ) {
         $query->set( 'meta_key', 'th_show_info_start_date' );
     }
 }
-add_action( 'manage_theatre_show_posts_custom_column' , 'theatre_manager_show_columns', 10, 2 );
-add_action( 'pre_get_posts', 'theatre_manager_show_orderby' );
-add_filter( 'manage_theatre_show_posts_columns', 'theatre_manager_editor_show_columns' );
-add_filter( 'manage_edit-theatre_show_sortable_columns', 'theatre_manager_show_columns_sortable' );
+add_action( 'manage_theatre_show_posts_custom_column' , 'tm_show_columns', 10, 2 );
+add_action( 'pre_get_posts', 'tm_show_orderby' );
+add_filter( 'manage_theatre_show_posts_columns', 'tm_editor_show_columns' );
+add_filter( 'manage_edit-theatre_show_sortable_columns', 'tm_show_columns_sortable' );
 
 //------------------------------------------------------------------------------------------
 /**
@@ -217,46 +220,53 @@ add_filter( 'manage_edit-theatre_show_sortable_columns', 'theatre_manager_show_c
  * @since 0.3
  */
 
-function theatre_manager_show_meta_boxes_setup(){
+function tm_show_meta_boxes_setup(){
+    $options = get_option( 'tm_settings' );
 
     //show info
-    add_action('add_meta_boxes', 'theatre_manager_show_info_meta');
-    add_action('add_meta_boxes', 'theatre_manager_show_person_meta');
-    add_action('add_meta_boxes', 'theatre_manager_show_crew_meta');
-    add_action('add_meta_boxes', 'theatre_manager_show_review_meta');
-
-    //save data
-    add_action('save_post', 'theatre_manager_show_info_save', 10, 2);
-    add_action('save_post', 'theatre_manager_show_person_save', 10, 2);
-    add_action('save_post', 'theatre_manager_show_crew_save', 10, 2);
-    add_action('save_post', 'theatre_manager_show_review_save', 10, 2);
+    add_action('add_meta_boxes', 'tm_show_info_meta', 1);
+    add_action('save_post', 'tm_show_info_save', 10, 2);
+    //content Warnings
+    if (isset($options['tm_show_warnings']) && $options['tm_show_warnings'] == 1){
+        add_action('add_meta_boxes', 'tm_content_meta', 1);
+        add_action('save_post', 'tm_content_save', 10, 2);
+    }
+    //actors
+    add_action('add_meta_boxes', 'tm_show_person_meta', 1);
+    add_action('save_post', 'tm_show_person_save', 10, 2);
+    //crew
+    add_action('add_meta_boxes', 'tm_show_crew_meta', 1);
+    add_action('save_post', 'tm_show_crew_save', 10, 2);
+    //reviews
+    add_action('add_meta_boxes', 'tm_show_review_meta', 1);
+    add_action('save_post', 'tm_show_review_save', 10, 2);
 }
-add_action( 'load-post.php', 'theatre_manager_show_meta_boxes_setup' );
-add_action( 'load-post-new.php', 'theatre_manager_show_meta_boxes_setup' );
+add_action( 'load-post.php', 'tm_show_meta_boxes_setup', 1);
+add_action( 'load-post-new.php', 'tm_show_meta_boxes_setup' );
 
 //info meta box controller
-function theatre_manager_show_info_meta(){
+function tm_show_info_meta(){
     add_meta_box(
         'theatre-manager-show-info', //ID
         'Show Information', //Title TODO: Internationalisation
-        'theatre_manager_show_info_box', //callback function
+        'tm_show_info_box', //callback function
         'theatre_show', //post type
         'normal', //on-page location
-        'core' //priority
+        'high' //priority
     );
 }
 
 //HTML representation of the box
-function theatre_manager_show_info_box($post){
-    $value = get_post_meta($post->ID, 'theatre_manager_show_info', true );
-    wp_nonce_field( basename( __FILE__ ), 'theatre_manager_show_info_nonce' );
+function tm_show_info_box($post){
+    $value = get_post_meta($post->ID, 'tm_show_info', true );
+    wp_nonce_field( basename( __FILE__ ), 'tm_show_info_nonce' );
     include plugin_dir_path( __FILE__ ) . 'forms/show-info-form.php';
 }
 
 //saving metadata 
-function theatre_manager_show_info_save( $post_id, $post ) {
+function tm_show_info_save( $post_id, $post ) {
     /* Verify the nonce before proceeding. */
-    if ( !isset( $_POST['theatre_manager_show_info_nonce'] ) || !wp_verify_nonce( $_POST['theatre_manager_show_info_nonce'], basename( __FILE__ ) ) )
+    if ( !isset( $_POST['tm_show_info_nonce'] ) || !wp_verify_nonce( $_POST['tm_show_info_nonce'], basename( __FILE__ ) ) )
         return $post_id;
     
     if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
@@ -278,34 +288,83 @@ function theatre_manager_show_info_save( $post_id, $post ) {
     }
 }
 
+/**
+ * Content Warning meta box
+ * @since 0.7
+ */
+function tm_content_meta(){
+    add_meta_box(
+        'theatre-manager-show-content', //ID
+        'Content Warnings', //Title TODO: Internationalisation
+        'tm_content_box', //callback function
+        'theatre_show', //post type
+        'normal', //on-page location
+        'high' //priority
+    );
+}
+
+function tm_content_box($post, $args){
+    wp_nonce_field( plugin_basename( __FILE__ ), 'tm_show_content_nonce' );
+    include plugin_dir_path( __FILE__ ) . 'forms/show-content-form.php';
+}
+
+function tm_content_save($post_id, $post){
+    // Don't wanna save this now, right?
+    if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
+    return;
+    if ( !isset( $_POST['tm_show_content_nonce'] ) )
+    return;
+    if ( !wp_verify_nonce( $_POST['tm_show_content_nonce'], plugin_basename( __FILE__ ) ) )
+    return;
+    // We do want to save? Ok!
+    $old = get_post_meta($post_id, 'th_show_content_warning_data', true);
+    $new = array();
+
+    $content = $_POST['content'];
+    $count = count( $content ) - 1;
+    error_log($count);
+
+    for ( $i = 0; $i < $count; $i++ ) {
+        error_log($content[$i] . " / " . $i);
+        if ( $content[$i] != '' ){
+            $new[$i]['warning'] = stripslashes( strip_tags( $content[$i] ) );
+        }
+    }
+    if ( !empty( $new ) && $new != $old ){
+        update_post_meta( $post_id, 'th_show_content_warning_data', $new );
+    } elseif ( empty($new) && $old ){
+        delete_post_meta( $post_id, 'th_show_content_warning_data', $old );
+    }
+}
+
 //------------------------------------------------------------------------------------------
 /** 
  * person meta box controller
  * @since 0.2
  */
-function theatre_manager_show_person_meta(){
+function tm_show_person_meta(){
     add_meta_box(
         'theatre-manager-show-person', //ID
         'Cast', //Title TODO: Internationalisation
-        'theatre_manager_show_person_box', //callback function
+        'tm_show_person_box', //callback function
         'theatre_show', //post type
         'normal', //on-page location
-        'core' //priority
+        'high' //priority
     );
 }
 
-function theatre_manager_show_person_box($post, $args){
-    wp_nonce_field( plugin_basename( __FILE__ ), 'theatre_manager_show_person_nonce' );
+function tm_show_person_box($post, $args){
+    wp_nonce_field( plugin_basename( __FILE__ ), 'tm_show_person_nonce' );
     include plugin_dir_path( __FILE__ ) . 'forms/show-person-form.php';
 }
 
-function theatre_manager_show_person_save($post_id, $post){
+function tm_show_person_save($post_id, $post){
     // Don't wanna save this now, right?
     if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
         return;
-    if ( !isset( $_POST['theatre_manager_show_person_nonce'] ) )
+    if ( !isset( $_POST['tm_show_person_nonce'] ) )
         return;
-    if ( !wp_verify_nonce( $_POST['theatre_manager_show_person_nonce'], plugin_basename( __FILE__ ) ) )
+    if ( !wp_verify_nonce( $_POST['tm_show_person_nonce'], plugin_basename( __FILE__ ) ) )
         return;
 
     // We do want to save? Ok!
@@ -342,9 +401,7 @@ function theatre_manager_show_person_save($post_id, $post){
         $member_new = array(); //create new array to store new data in
         $show_roles = get_post_meta($person, 'th_show_roles', true);
         $member_new[$post_id] = $new[$person];
-        if (empty($show_roles)){            
-            $member_new[$post_id] = $new[$person];
-        } else {
+        if (!empty($show_roles)){            
             //go through all current stored data
             foreach ($show_roles as $show => $role) {
                 if ( (abs($show-$post_id) < PHP_FLOAT_EPSILON)){
@@ -382,29 +439,29 @@ function theatre_manager_show_person_save($post_id, $post){
  * crew meta box controller
  * @since 0.2
  */
-function theatre_manager_show_crew_meta(){
+function tm_show_crew_meta(){
     add_meta_box(
         'theatre-manager-show-crew', //ID
         'Production Team', //Title TODO: Internationalisation
-        'theatre_manager_show_crew_box', //callback function
+        'tm_show_crew_box', //callback function
         'theatre_show', //post type
         'normal', //on-page location
-        'core' //priority
+        'high' //priority
     );
 }
 
-function theatre_manager_show_crew_box($post, $args){
-    wp_nonce_field( plugin_basename( __FILE__ ), 'theatre_manager_show_crew_nonce' );
+function tm_show_crew_box($post, $args){
+    wp_nonce_field( plugin_basename( __FILE__ ), 'tm_show_crew_nonce' );
     include plugin_dir_path( __FILE__ ) . 'forms/show-crew-form.php';
 }
 
-function theatre_manager_show_crew_save($post_id, $post){
+function tm_show_crew_save($post_id, $post){
     // Don't wanna save this now, right?
     if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
         return;
-    if ( !isset( $_POST['theatre_manager_show_crew_nonce'] ) )
+    if ( !isset( $_POST['tm_show_crew_nonce'] ) )
         return;
-    if ( !wp_verify_nonce( $_POST['theatre_manager_show_crew_nonce'], plugin_basename( __FILE__ ) ) )
+    if ( !wp_verify_nonce( $_POST['tm_show_crew_nonce'], plugin_basename( __FILE__ ) ) )
         return;
 
     // We do want to save? Ok!
@@ -481,28 +538,28 @@ function theatre_manager_show_crew_save($post_id, $post){
  * Reviews meta box 
  * @since 0.3
  */
-function theatre_manager_show_review_meta(){
+function tm_show_review_meta(){
     add_meta_box(
         'theatre-manager-show-review', //ID
         'Reviews', //Title TODO: Internationalisation
-        'theatre_manager_show_review_box', //callback function
+        'tm_show_review_box', //callback function
         'theatre_show', //post type
         'normal', //on-page location
-        'core' //priority
+        'high' //priority
     );
 }
 
 //HTML representation of the box
-function theatre_manager_show_review_box($post){
-    wp_nonce_field( basename( __FILE__ ), 'theatre_manager_show_review_nonce' );
+function tm_show_review_box($post){
+    wp_nonce_field( basename( __FILE__ ), 'tm_show_review_nonce' );
     include plugin_dir_path( __FILE__ ) . 'forms/show-review-form.php';
 }
 
 //saving metadata 
-function theatre_manager_show_review_save( $post_id, $post ) {
+function tm_show_review_save( $post_id, $post ) {
 
     /* Verify the nonce before proceeding. */
-    if ( !isset( $_POST['theatre_manager_show_review_nonce'] ) || !wp_verify_nonce( $_POST['theatre_manager_show_review_nonce'], basename( __FILE__ ) ) )
+    if ( !isset( $_POST['tm_show_review_nonce'] ) || !wp_verify_nonce( $_POST['tm_show_review_nonce'], basename( __FILE__ ) ) )
         return;
   
     if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE)
@@ -558,7 +615,7 @@ add_action( 'admin_init', 'add_admin_menu_separator' );
  * Returns show data
  * @since 0.5
  */
-function theatre_manager_show_shortcode() {
+function tm_show_shortcode() {
     $author = get_post_meta(get_the_ID(), 'th_show_info_author', true);
     if ($author == "") $author =  "unknown";
     $start = implode(" ", get_post_meta(get_the_ID(), 'th_show_info_start_date'));
@@ -566,41 +623,69 @@ function theatre_manager_show_shortcode() {
     $cast = get_post_meta(get_the_ID(), 'th_show_person_info_data', true);
     $crew = get_post_meta(get_the_ID(), 'th_show_crew_info_data', true);
     $reviews = get_post_meta(get_the_ID(), 'th_show_review_data');
+    $data = "";
     //basic data
-    $data = "<table><tbody>
+    $options = get_option( 'tm_settings' );
+    if (isset($options['tm_show_warnings']) && $options['tm_show_warnings'] == 1){
+        $content = get_post_meta(get_the_ID(), 'th_show_content_warning_data', true);
+        if (is_null( $content ) || empty($content)){
+            $data = $data . "<p> This show has no content warnings.</p>";
+        } else {
+            $data = $data . '<p> This show\'s Content Warnings include:</p><p style="text-align: center !important;">';
+            foreach ( $content as $item) {
+                $data = $data . "<a href=\"" . get_post_permalink($item['warning'])."\">" . tm_name_lookup($item['warning'], 'theatre_warning') . "</a>, ";
+            }
+            $data = substr($data, 0, -2);
+            $data = $data . "</p>";
+        }
+    }
+    $data =  $data ."<table><tbody>
             <tr><td>Playwrite</td><td>" . $author . "</td></tr>
             <tr><td>Date</td><td>" . $start . " - " . $end . "</td></tr>";
     //cast data
     $data = $data . "<tr><td>Cast</td><td><table><tbody>";
     $casttext = "";
-    foreach ( $cast as $actor => $role ) {
-        foreach ($role as $item){
-            $casttext = $casttext . "<tr><td><a href=\"" . get_post_permalink($actor)."\">" . theatre_manager_name_lookup($actor, 'theatre_person') . "</a> as " . $item . "</td></tr>";
+    if (is_null( $cast ) || empty($cast)){
+        $casttext = "This show has no known cast";
+    } else {
+        foreach ( $cast as $actor => $role ) {
+            foreach ($role as $item){
+                $casttext = $casttext . "<tr><td><a href=\"" . get_post_permalink($actor)."\">" . tm_name_lookup($actor, 'theatre_person') . "</a> as " . $item . "</td></tr>";
+            }
         }
     }
     $data = $data . $casttext . "</tbody></table></td></tr>";
     //crew data
     $data = $data . "<tr><td>Crew</td><td><table><tbody>";
     $casttext = "";
-    foreach ( $crew as $pos => $job ) {
-        foreach ($job as $item){
-            $casttext = $casttext . "<tr><td>" . $item . ": <a href=\"" . get_post_permalink($pos)."\">" . theatre_manager_name_lookup($pos, 'theatre_person') . "</td></tr>";
+    if (is_null( $crew ) || empty($crew)){
+        $casttext = "This show has no known crew";
+    } else {
+        foreach ( $crew as $pos => $job ) {
+            foreach ($job as $item){
+                $casttext = $casttext . "<tr><td>" . $item . ": <a href=\"" . get_post_permalink($pos)."\">" . tm_name_lookup($pos, 'theatre_person') . "</td></tr>";
+            }
         }
     }
     $data = $data . $casttext . "</tbody></table></td></tr>";
     //Reviews
     $data = $data . "<tr><td>Reviews</td><td><table><tbody>";
     $casttext = "";
-    foreach ( $reviews as $field ) {
-        foreach ($field as $item){
-            $casttext = $casttext . "<tr><td><a href=\"" . $item['link'] . "\"> ". $item['reviewer'] . " reviewed this!</a></td></tr>";
+    $casttext = "";
+    if (is_null( $reviews ) || empty($reviews)){
+        $casttext = "This show has no reviews yet";
+    } else {
+        foreach ( $reviews as $field ) {
+            foreach ($field as $item){
+                $casttext = $casttext . "<tr><td><a href=\"" . $item['link'] . "\"> ". $item['reviewer'] . " reviewed this!</a></td></tr>";
+            }
         }
     }
     $data = $data . $casttext . "</tbody></table></td></tr>";
     //return all
     return $data . "</tbody></table>";
 }
-add_shortcode( 'show_data', 'theatre_manager_show_shortcode' );
+add_shortcode( 'show_data', 'tm_show_shortcode' );
 
 //------------------------------------------------------------------------------------------
 /** 

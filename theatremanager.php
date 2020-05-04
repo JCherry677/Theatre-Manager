@@ -12,34 +12,35 @@
  * License: GPLv2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * text domain: theatre-manager
- * Domain Path: /lang
  */
 
- // If called directly, abort
+// If called directly, abort
 if ( ! defined( 'ABSPATH' )) die;
 
 
 //fetch relevant pages
 //show custom type
-require_once(dirname(__FILE__) . '/includes/theatre-manager-show-type.php');
 require_once(dirname(__FILE__) . '/includes/theatre-manager-person-type.php');
 require_once(dirname(__FILE__) . '/includes/theatre-manager-committee-type.php');
+require_once(dirname(__FILE__) . '/includes/theatre-manager-show-type.php');
+require_once(dirname(__FILE__) . '/includes/theatre-manager-warning-type.php');
+require_once(dirname(__FILE__) . '/includes/theatre-manager-options.php');
 
-
+//------------------------------------------------------------------------------------------
 /**
  * Main Plugin functions
  * @since 0.1
  */
 
 //activate plugin
-function theatre_manager_activate(){
+function tm_activate(){
     // Clear the permalinks after the post type has been registered.
     flush_rewrite_rules(); 
 }
-register_activation_hook( __FILE__, 'theatre_manager_activate');
+register_activation_hook( __FILE__, 'tm_activate');
 
 //deactivate plugin
-function theatre_manager_deactivate() {
+function tm_deactivate() {
     // Unregister the post type, so the rules are no longer in memory.
     unregister_post_type( 'theatre_show' );
     unregister_post_type( 'theatre_member' );
@@ -47,17 +48,42 @@ function theatre_manager_deactivate() {
     // Clear the permalinks to remove our post type's rules from the database.
     flush_rewrite_rules();
 }
-register_deactivation_hook( __FILE__, 'theatre_manager_deactivate' );
+register_deactivation_hook( __FILE__, 'tm_deactivate' );
 
+//------------------------------------------------------------------------------------------
+/**
+ * Add shortcodes to shows, people and committees 
+ * Not the best way to do this but guarantees content with every theme
+ * @since 0.7
+ */
+function tm_shortcodes_on_posts( $content ) {
+    global $post;
+    if( ! $post instanceof WP_Post ) return $content;
+  
+    switch( $post->post_type ) {
+        case 'theatre_show':
+            return $content . '[show_data]';
+        case 'theatre_person':
+            return $content . '[person_data]';
+        case 'theatre_committee':
+            return $content . '[committee_data]';
+        default:
+              return $content;
+    }
+}
+add_filter( 'the_content', 'tm_shortcodes_on_posts' );
+
+
+//------------------------------------------------------------------------------------------
 /**
  * Utility Functions
  */
 
 /** 
- * theatre_manager_name_lookup - get name from id
+ * tm_name_lookup - get name from id
  * @since 0.6
  */
-function theatre_manager_name_lookup($name_id, $type){
+function tm_name_lookup($name_id, $type){
     $query = new WP_Query( 'post_type=' . $type );
     while ( $query->have_posts() ) {
         $query->the_post();
@@ -69,10 +95,10 @@ function theatre_manager_name_lookup($name_id, $type){
     return false;
 }
 /** 
- * theatre_manager_id_lookup - get id from name
+ * tm_id_lookup - get id from name
  * @since 0.6
  */
-function theatre_manager_id_lookup($name, $type){
+function tm_id_lookup($name, $type){
     $query = new WP_Query( 'post_type=' . $type );
     while ( $query->have_posts() ) {
         $query->the_post();

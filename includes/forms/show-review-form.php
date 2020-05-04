@@ -52,6 +52,6 @@
         </tbody>
         </table>
 
-        <p><a id="add-review-row" class="button" href="#">Add Review</a></p>
+        <p><a id="add-review-row" class="button" href="#" style="margin-left: -80px;">Add Review</a></p>
     </div>
 </div>

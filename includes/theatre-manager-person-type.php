@@ -4,8 +4,11 @@
  * @since 0.2
  */
 
+// If called directly, abort
+if ( ! defined( 'ABSPATH' )) die;
+
 //create person type
-function theatre_manager_person_type(){
+function tm_person_type(){
     $labels = array(
         'name'               => __( 'Members', 'post type general name' ),
         'singular_name'      => __( 'Member', 'post type singular name' ),
@@ -27,7 +30,7 @@ function theatre_manager_person_type(){
         'description'   => 'Contains information about members - past and present',
         'public'        => true,
         'menu_position' => 30,
-        'supports'      => array( 'title', 'editor', 'revisions'),
+        'supports'      => array( 'title', 'editor'),
         'rewrite'       => array('slug' => 'members'),
         'show_in_rest'  => false, //true => Gutenberg editor, false => old editor
         'has_archive'   => true,
@@ -35,7 +38,7 @@ function theatre_manager_person_type(){
 
     register_post_type('theatre_person', $args);
 }
-add_action('init', 'theatre_manager_person_type');
+add_action('init', 'tm_person_type');
 
 //------------------------------------------------------------------------------------------
 /**
@@ -45,7 +48,7 @@ add_action('init', 'theatre_manager_person_type');
  * @param array $messages Existing post update messages.
  * @return array Amended post update messages with new CPT update messages.
  */
-function theatre_manager_person_messages( $messages ) {
+function tm_person_messages( $messages ) {
     global $post, $post_ID;
     $messages['theatre_person'] = array(
       0 => '’', 
@@ -62,7 +65,7 @@ function theatre_manager_person_messages( $messages ) {
     );
     return $messages;
 }
-add_filter( 'post_updated_messages', 'theatre_manager_person_messages' );
+add_filter( 'post_updated_messages', 'tm_person_messages' );
 
 //------------------------------------------------------------------------------------------
 /**
@@ -72,15 +75,15 @@ add_filter( 'post_updated_messages', 'theatre_manager_person_messages' );
  * @since 0.5
  */
 
-function theatre_manager_editor_person_columns($columns){
+function tm_editor_person_columns($columns){
     unset( $columns['date'] );
     $columns['grad_year'] = __( 'Graduation Year', 'theatre-manager');
     return $columns;
 }
-add_filter( 'manage_theatre_person_posts_columns', 'theatre_manager_editor_person_columns' );
+add_filter( 'manage_theatre_person_posts_columns', 'tm_editor_person_columns' );
 
 //get data
-function theatre_manager_person_columns( $column, $post_id ){
+function tm_person_columns( $column, $post_id ){
     switch ($column){
         case 'grad_year':
             $info = get_post_meta(get_the_ID(), 'th_person_info_data');
@@ -99,17 +102,17 @@ function theatre_manager_person_columns( $column, $post_id ){
 
     }
 }
-add_action( 'manage_theatre_person_posts_custom_column' , 'theatre_manager_person_columns', 10, 2 );
+add_action( 'manage_theatre_person_posts_custom_column' , 'tm_person_columns', 10, 2 );
 
 //make sortable
-function theatre_manager_person_columns_sortable( $columns ) {
+function tm_person_columns_sortable( $columns ) {
     $columns['grad_year'] = 'grad_year';
     return $columns;
 }
-add_filter( 'manage_edit-theatre_person_sortable_columns', 'theatre_manager_person_columns_sortable' );
+add_filter( 'manage_edit-theatre_person_sortable_columns', 'tm_person_columns_sortable' );
 
 //potentially doesn't work
-function theatre_manager_person_orderby( $query ) {
+function tm_person_orderby( $query ) {
     if( ! is_admin() || ! $query->is_main_query() ) {
       return;
     }
@@ -119,7 +122,7 @@ function theatre_manager_person_orderby( $query ) {
       $query->set( 'meta_key', 'th_person_info_data' );
     }
 }
-add_action( 'pre_get_posts', 'theatre_manager_person_orderby' );
+add_action( 'pre_get_posts', 'tm_person_orderby' );
 
 //------------------------------------------------------------------------------------------
 /**
@@ -129,40 +132,40 @@ add_action( 'pre_get_posts', 'theatre_manager_person_orderby' );
  * @since 0.2
  */
 
-function theatre_manager_person_meta_boxes_setup(){
+function tm_person_meta_boxes_setup(){
 
     //person info
-    add_action('add_meta_boxes', 'theatre_manager_person_info_meta');
+    add_action('add_meta_boxes', 'tm_person_info_meta');
 
     //save data
-    add_action('save_post', 'theatre_manager_person_info_save', 10, 2);
+    add_action('save_post', 'tm_person_info_save', 10, 2);
 }
 
 //info meta box controller
-function theatre_manager_person_info_meta(){
+function tm_person_info_meta(){
     add_meta_box(
         'theatre-manager-person-info', //ID
         'Your Information', //Title TODO: Internationalisation
-        'theatre_manager_person_info_box', //callback function
+        'tm_person_info_box', //callback function
         'theatre_person', //post type
         'normal', //on-page location
         'core' //priority
     );
 }
-add_action( 'load-post.php', 'theatre_manager_person_meta_boxes_setup' );
-add_action( 'load-post-new.php', 'theatre_manager_person_meta_boxes_setup' );
+add_action( 'load-post.php', 'tm_person_meta_boxes_setup' );
+add_action( 'load-post-new.php', 'tm_person_meta_boxes_setup' );
 
 //HTML representation of the box
-function theatre_manager_person_info_box($post){
-    wp_nonce_field( basename( __FILE__ ), 'theatre_manager_person_info_nonce' );
+function tm_person_info_box($post){
+    wp_nonce_field( basename( __FILE__ ), 'tm_person_info_nonce' );
     include plugin_dir_path( __FILE__ ) . 'forms/person-info-form.php';
 }
 
 //saving metadata 
-function theatre_manager_person_info_save( $post_id, $post ) {
+function tm_person_info_save( $post_id, $post ) {
 
     /* Verify the nonce before proceeding. */
-    if ( !isset( $_POST['theatre_manager_person_info_nonce'] ) || !wp_verify_nonce( $_POST['theatre_manager_person_info_nonce'], basename( __FILE__ ) ) )
+    if ( !isset( $_POST['tm_person_info_nonce'] ) || !wp_verify_nonce( $_POST['tm_person_info_nonce'], basename( __FILE__ ) ) )
         return;
   
     if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE)
@@ -201,8 +204,8 @@ function theatre_manager_person_info_save( $post_id, $post ) {
  * Returns show data
  * @since 0.5
  */
-function theatre_manager_person_shortcode() {
-    $name = (theatre_manager_name_lookup(get_the_ID(), 'theatre_person'));
+function tm_person_shortcode() {
+    $name = (tm_name_lookup(get_the_ID(), 'theatre_person'));
     $info = get_post_meta(get_the_ID(), 'th_person_info_data');
     $shows = get_post_meta(get_the_ID(), 'th_show_roles')[0];
     $crews = get_post_meta(get_the_ID(), 'th_crew_roles')[0];
@@ -227,7 +230,7 @@ function theatre_manager_person_shortcode() {
     } else{
         $casttext = $casttext . "<table><thead><td><h6>Show</h6></td><td><h6>Role(s)</h6></td></thead><tbody>";
         foreach($shows as $show => $role){
-            $casttext = $casttext . "<tr><td><a href=\"" . get_post_permalink($show)."\">". theatre_manager_name_lookup($show, 'theatre_show') . "</a></td><td><table><tbody>";
+            $casttext = $casttext . "<tr><td><a href=\"" . get_post_permalink($show)."\">". tm_name_lookup($show, 'theatre_show') . "</a></td><td><table><tbody>";
             foreach ($role as $item){
                 $casttext = $casttext . "<tr><td>" . $item . "</td></tr>";
             }
@@ -243,7 +246,7 @@ function theatre_manager_person_shortcode() {
     } else{
         $crewtext = $crewtext . "<table><thead><td><h6>Show</h6></td><td><h6>Role(s)</h6></td></thead><tbody>";
         foreach($crews as $show => $role){
-            $crewtext = $crewtext . "<tr><td><a href=\"" . get_post_permalink($show)."\">". theatre_manager_name_lookup($show, 'theatre_show')  . "</a></td><td><table><tbody>";
+            $crewtext = $crewtext . "<tr><td><a href=\"" . get_post_permalink($show)."\">". tm_name_lookup($show, 'theatre_show')  . "</a></td><td><table><tbody>";
             foreach ($role as $item){
                 $crewtext = $crewtext . "<tr><td>" . $item . "</td></tr>";
             }
@@ -259,7 +262,7 @@ function theatre_manager_person_shortcode() {
     } else {
         $committeestext = $committeestext . "<table><thead><td><h6>Commitee Period</h6></td><td><h6>Role</h6></td></thead><tbody>";
         foreach($committees as $committee => $role){
-            $committeestext = $committeestext . "<tr><td><a href=\"" . get_post_permalink($committee)."\">" . theatre_manager_name_lookup($committee, 'theatre_committee') . "</td><td><table><tbody>";
+            $committeestext = $committeestext . "<tr><td><a href=\"" . get_post_permalink($committee)."\">" . tm_name_lookup($committee, 'theatre_committee') . "</td><td><table><tbody>";
             foreach ($role as $item){
                 $committeestext = $committeestext . "<tr><td>" . $item . "</td></tr>";
             }
@@ -272,20 +275,4 @@ function theatre_manager_person_shortcode() {
     //return all
     return $data;
 }
-add_shortcode( 'person_data', 'theatre_manager_person_shortcode' );
-
-/**
- * Utility Functions
- * theatre_manager_show_name_lookup - get name from id
- * @since 0.5
- */
-function theatre_manager_show_name_lookup($name_id){
-    $query = new WP_Query( 'post_type=theatre_show' );
-    while ( $query->have_posts() ) {
-        $query->the_post();
-        $id = get_the_ID();
-        if($id == $name_id){
-            return get_the_title();
-        }
-    }
-}
+add_shortcode( 'person_data', 'tm_person_shortcode' );
