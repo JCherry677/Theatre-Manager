@@ -30,7 +30,7 @@ function tm_person_type(){
         'description'   => 'Contains information about members - past and present',
         'public'        => true,
         'menu_position' => 30,
-        'supports'      => array( 'title', 'editor'),
+        'supports'      => array( 'title', 'editor', 'thumbnail', ),
         'rewrite'       => array('slug' => 'members'),
         'show_in_rest'  => false, //true => Gutenberg editor, false => old editor
         'has_archive'   => true,
