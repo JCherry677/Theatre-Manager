@@ -212,7 +212,7 @@ function tm_person_shortcode() {
     $committees = get_post_meta(get_the_ID(), 'th_committee_roles')[0];
 
     //basic data
-    $degreetext = "<h2>York Uni Courses</h2>";
+    $degreetext = "<h2>Courses</h2>";
     if (is_null( $info )){
         $degreetext = $degreetext . "<p> No Known Courses </p>";
     } else {
@@ -240,7 +240,7 @@ function tm_person_shortcode() {
     }
 
     //show - crew
-    $crewtext = "<h3>Crew</h3>";
+    $crewtext = "<h3>Production Roles</h3>";
     if ($crews == ""){
         $crewtext = $crewtext . "<p>" . $name ." has not been on a Production Team of any shows</p>";
     } else{
@@ -260,7 +260,7 @@ function tm_person_shortcode() {
     if ($committees == ""){
         $committeestext = $committeestext . "<p>" . $name ." has not been on a committee</p>";
     } else {
-        $committeestext = $committeestext . "<table><thead><td><h6>Commitee Period</h6></td><td><h6>Role</h6></td></thead><tbody>";
+        $committeestext = $committeestext . "<table><thead><td><h6>Committee Period</h6></td><td><h6>Role</h6></td></thead><tbody>";
         foreach($committees as $committee => $role){
             $committeestext = $committeestext . "<tr><td><a href=\"" . get_post_permalink($committee)."\">" . tm_name_lookup($committee, 'theatre_committee') . "</td><td><table><tbody>";
             foreach ($role as $item){

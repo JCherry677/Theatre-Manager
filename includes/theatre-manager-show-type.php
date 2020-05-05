@@ -640,7 +640,7 @@ function tm_show_shortcode() {
         }
     }
     $data =  $data ."<table><tbody>
-            <tr><td>Playwrite</td><td>" . $author . "</td></tr>
+            <tr><td>Playwright</td><td>" . $author . "</td></tr>
             <tr><td>Date</td><td>" . $start . " - " . $end . "</td></tr>";
     //cast data
     $data = $data . "<tr><td>Cast</td><td><table><tbody>";
@@ -656,7 +656,7 @@ function tm_show_shortcode() {
     }
     $data = $data . $casttext . "</tbody></table></td></tr>";
     //crew data
-    $data = $data . "<tr><td>Crew</td><td><table><tbody>";
+    $data = $data . "<tr><td>Production Team</td><td><table><tbody>";
     $casttext = "";
     if (is_null( $crew ) || empty($crew)){
         $casttext = "This show has no known crew";
