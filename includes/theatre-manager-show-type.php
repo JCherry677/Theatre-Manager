@@ -394,7 +394,7 @@ function tm_show_person_save($post_id, $post){
         delete_post_meta( $post_id, 'th_show_person_info_data', $old );
     }
     
-    //save committee details in person metadata 
+    //save role details in person metadata 
     foreach ($known as $person){
         $member_new = array(); //create new array to store new data in
         $show_roles = get_post_meta($person, 'th_show_roles', true);
@@ -491,7 +491,7 @@ function tm_show_crew_save($post_id, $post){
         update_post_meta( $post_id, 'th_show_crew_info_data', $new );
     }
 
-    //save committee details in person metadata 
+    //save crew details in person metadata 
     foreach ($known as $person){
         $member_new = array(); //create new array to store new data in
         $crew_roles = get_post_meta($person, 'th_crew_roles', true);

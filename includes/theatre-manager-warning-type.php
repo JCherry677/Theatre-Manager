@@ -18,7 +18,7 @@ function tm_warning_type(){
         'not_found'          => __( 'No Content Warnings found' ),
         'not_found_in_trash' => __( 'No Content Warnings found in the Trash' ), 
         'parent_item_colon'  => '’',
-        'menu_name'          => 'Committee',
+        'menu_name'          => 'Content Warning',
     );
 
     $args = array(

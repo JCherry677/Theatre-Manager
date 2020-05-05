@@ -255,23 +255,28 @@ function tm_person_shortcode() {
         $crewtext = $crewtext . "</tbody></table>";
     }
 
-    //committees
-    $committeestext = "<h2>Committees</h2>";
-    if ($committees == ""){
-        $committeestext = $committeestext . "<p>" . $name ." has not been on a committee</p>";
-    } else {
-        $committeestext = $committeestext . "<table><thead><td><h6>Committee Period</h6></td><td><h6>Role</h6></td></thead><tbody>";
-        foreach($committees as $committee => $role){
-            $committeestext = $committeestext . "<tr><td><a href=\"" . get_post_permalink($committee)."\">" . tm_name_lookup($committee, 'theatre_committee') . "</td><td><table><tbody>";
-            foreach ($role as $item){
-                $committeestext = $committeestext . "<tr><td>" . $item . "</td></tr>";
+    $options = get_option( 'tm_settings' );
+    if (isset($options['tm_committees']) && $options['tm_committees'] == 1){
+        //committees
+        $committeestext = "<h2>Committees</h2>";
+        if ($committees == ""){
+            $committeestext = $committeestext . "<p>" . $name ." has not been on a committee</p>";
+        } else {
+            $committeestext = $committeestext . "<table><thead><td><h6>Committee Period</h6></td><td><h6>Role</h6></td></thead><tbody>";
+            foreach($committees as $committee => $role){
+                $committeestext = $committeestext . "<tr><td><a href=\"" . get_post_permalink($committee)."\">" . tm_name_lookup($committee, 'theatre_committee') . "</a></td><td><table><tbody>";
+                foreach ($role as $item){
+                    $committeestext = $committeestext . "<tr><td><a href=\"" . get_post_permalink($item)."\">" . tm_name_lookup($item, 'theatre_role') . "</a></td></tr>";
+                }
+                $committeestext = $committeestext . "</tbody></table></td></tr>";
             }
-            $committeestext = $committeestext . "</tbody></table></td></tr>";
+            $committeestext = $committeestext . "</tbody></table>";
         }
-        $committeestext = $committeestext . "</tbody></table>";
-    }
 
-    $data = $degreetext . $casttext .  $crewtext . $committeestext;
+        $data = $degreetext . $casttext .  $crewtext . $committeestext;
+    }else {
+        $data = $degreetext . $casttext .  $crewtext;    
+    }
     //return all
     return $data;
 }

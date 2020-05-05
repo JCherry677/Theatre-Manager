@@ -17,7 +17,7 @@ function tm_settings_init(  ) {
 	register_setting( 'pluginPage', 'tm_settings' );
 	add_settings_section(
 		'tm_pluginPage_section', 
-		__( 'Show Settings', 'theatre-manager' ), 
+		__( 'Manager Features', 'theatre-manager' ), 
 		'tm_settings_section_callback', 
 		'pluginPage'
     );
@@ -25,6 +25,13 @@ function tm_settings_init(  ) {
 		'tm_show_warnings', 
 		__( 'Use Show Content Warnings', 'theatre-manager' ), 
 		'tm_show_warnings_render', 
+		'pluginPage', 
+		'tm_pluginPage_section' 
+	);
+	add_settings_field( 
+		'tm_committee_option', 
+		__( 'Use Committees', 'theatre-manager' ), 
+		'tm_committee_render', 
 		'pluginPage', 
 		'tm_pluginPage_section' 
 	);
@@ -53,8 +60,14 @@ function tm_show_warnings_render(  ) {
 	<input type='checkbox' name='tm_settings[tm_show_warnings]' <?php if (isset($options['tm_show_warnings'])) checked( $options['tm_show_warnings'], 1 ); ?> value='1'>
 	<?php
 }
+function tm_committee_render(  ) { 
+	$options = get_option( 'tm_settings' );
+	?>
+	<input type='checkbox' name='tm_settings[tm_committees]' <?php if (isset($options['tm_committees'])) checked( $options['tm_committees'], 1 ); ?> value='1'>
+	<?php
+}
 function tm_settings_section_callback(  ) { 
-	echo __( 'Theatre Show Settings', 'theatre-manager' );
+	echo __( 'Enable Features of the plugin', 'theatre-manager' );
 }
 function tm_archive_section_callback(  ) { 
 	echo __( '<p>In a multisite setup, this allows you to export shows to a second "archive" site</p>', 'theatre-manager' );

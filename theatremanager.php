@@ -19,9 +19,9 @@ if ( ! defined( 'ABSPATH' )) die;
 
 
 //fetch relevant pages
-//show custom type
 require_once(dirname(__FILE__) . '/includes/theatre-manager-person-type.php');
 require_once(dirname(__FILE__) . '/includes/theatre-manager-committee-type.php');
+require_once(dirname(__FILE__) . '/includes/theatre-manager-committee-role-type.php');
 require_once(dirname(__FILE__) . '/includes/theatre-manager-show-type.php');
 require_once(dirname(__FILE__) . '/includes/theatre-manager-warning-type.php');
 require_once(dirname(__FILE__) . '/includes/theatre-manager-options.php');
@@ -45,6 +45,8 @@ function tm_deactivate() {
     unregister_post_type( 'theatre_show' );
     unregister_post_type( 'theatre_member' );
     unregister_post_type( 'theatre_committee' );
+    unregister_post_type( 'theatre_committee_role' );
+    unregister_post_type( 'theatre_warning' );
     // Clear the permalinks to remove our post type's rules from the database.
     flush_rewrite_rules();
 }
@@ -67,6 +69,8 @@ function tm_shortcodes_on_posts( $content ) {
             return $content . '[person_data]';
         case 'theatre_committee':
             return $content . '[committee_data]';
+        case 'theatre_role':
+            return $content . '[role_data]';
         default:
               return $content;
     }
@@ -130,6 +134,30 @@ function th_person_lookup() {
     $query = 'SELECT ID,post_title FROM ' . $wpdb->posts . '
         WHERE post_title LIKE \'' . $search . '%\'
         AND post_type = \'theatre_person\'
+        AND post_status = \'publish\'
+        ORDER BY post_title ASC';
+    $rows = $wpdb->get_results($query);
+    foreach ($rows as $row) {
+        $post_title = $row->post_title;
+        $id = $row->ID;
+        $text = $post_title . " (" . $id . ")\n";
+        echo $text;
+    }
+    wp_die();
+}
+
+//autocomplete role
+add_action('wp_ajax_th_role_lookup', 'th_role_lookup');
+add_action('wp_ajax_nopriv_th_role_lookup', 'th_role_lookup');
+
+function th_role_lookup() {
+    global $wpdb;
+
+    $search = $wpdb->esc_like($_REQUEST['q']);
+
+    $query = 'SELECT ID,post_title FROM ' . $wpdb->posts . '
+        WHERE post_title LIKE \'' . $search . '%\'
+        AND post_type = \'theatre_role\'
         AND post_status = \'publish\'
         ORDER BY post_title ASC';
     $rows = $wpdb->get_results($query);
