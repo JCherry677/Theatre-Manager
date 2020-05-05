@@ -322,10 +322,8 @@ function tm_content_save($post_id, $post){
 
     $content = $_POST['content'];
     $count = count( $content ) - 1;
-    error_log($count);
 
     for ( $i = 0; $i < $count; $i++ ) {
-        error_log($content[$i] . " / " . $i);
         if ( $content[$i] != '' ){
             $new[$i]['warning'] = stripslashes( strip_tags( $content[$i] ) );
         }
@@ -592,6 +590,7 @@ function tm_show_review_save( $post_id, $post ) {
         delete_post_meta( $post_id, 'th_show_review_data', $old );
 }
 
+//------------------------------------------------------------------------------------------
 /**
  * Add separator in admin menu
  * @since 0.2
@@ -928,6 +927,7 @@ class tm_show_type_widget extends WP_Widget {
     }
 }
 
+
 // Register and load the widgets
 function tm_load_widgets() {
     register_widget( 'tm_show_season_widget' );
@@ -935,3 +935,90 @@ function tm_load_widgets() {
     register_widget( 'tm_show_type_widget' );
 }
 add_action( 'widgets_init', 'tm_load_widgets' );
+
+$options = get_option( 'tm_settings' );
+if (isset($options['tm_archive']) && $options['tm_archive'] == 1){
+    //------------------------------------------------------------------------------------------
+    /** 
+     * Add Bulk Action - move to site
+     * @since 0.7
+     */
+    function tm_move_show_action($bulk_array){
+        if( $sites = get_sites( array(
+            // 'site__in' => array( 1,2,3 )
+            'site__not_in'  => get_current_blog_id(), // excluding current blog
+            'number'        => 5,
+        ))) {
+            foreach( $sites as $site ) {
+                $bulk_array['move_to_'.$site->blog_id] = 'Move to "' .$site->blogname . '"';
+            }
+        }
+    
+        return $bulk_array;
+    }
+    add_filter('bulk_actions-edit-theatre_show', 'tm_move_show_action');
+
+    function tm_bulk_move_show_handler($redirect, $doaction, $object_ids){
+        // we need query args to display correct admin notices
+        $redirect = remove_query_arg( array( 'tm_posts_moved', 'tm_blogid' ), $redirect );
+    
+        // our actions begin with "move_to_", so let's check if it is a target action
+    if( strpos( $doaction, "move_to_" ) === 0 ) {
+            $blog_id = str_replace( "move_to_", "", $doaction );
+
+            foreach ( $object_ids as $post_id ) {
+                // get the original post object as an array
+                $post = get_post( $post_id, ARRAY_A );
+                $taxonomies = get_object_taxonomies( $post['theatre_show'] );
+                foreach ( $taxonomies as $taxonomy ) {
+                    $post_terms = wp_get_object_terms( $post_id, $taxonomy, array('fields' => 'slugs') );
+                }
+                // get all the post meta
+                $data = get_post_custom($post_id);
+                // empty ID field, to tell WordPress to create a new post, not update an existing one
+                $post['ID'] = '';
+
+                switch_to_blog( $blog_id );
+
+                // insert the post
+                $inserted_post_id = wp_insert_post($post); // insert the post
+                // update post terms
+                foreach ( $taxonomies as $taxonomy ) {
+                    wp_set_object_terms( $inserted_post_id, $post_terms, $taxonomy, false );
+                }
+                // add post meta
+                foreach ( $data as $key => $values) {
+                    // if you do not want weird redirects
+                    if( $key == '_wp_old_slug' ) {
+                        continue;
+                    }
+                    foreach ($values as $value) {
+                        add_post_meta( $inserted_post_id, $key, $value );
+                    }
+                }
+                restore_current_blog();
+
+                wp_delete_post( $post_id );
+            }
+            $redirect = add_query_arg( array(
+                'tm_posts_moved' => count( $object_ids ),
+                'tm_blogid' => $blog_id
+            ), $redirect );
+        }
+        return $redirect;
+    }
+    add_filter( 'handle_bulk_actions-edit-theatre_show', 'tm_bulk_move_show_handler', 10, 3 );
+
+    function tm_bulk_move_notice() {
+    
+        if( ! empty( $_REQUEST['tm_posts_moved'] ) ) {
+
+            $blog = get_blog_details( $_REQUEST['tm_blogid'] );//get blog moved to
+    
+            printf( '<div id="message" class="updated notice is-dismissible"><p>' .
+                _n( '%d post has been moved to "%s".', '%d posts have been moved to "%s".', intval( $_REQUEST['tm_posts_moved'] )
+            ) . '</p></div>', intval( $_REQUEST['tm_posts_moved'] ), $blog->blogname );
+        }
+    }
+    add_action( 'admin_notices', 'tm_bulk_move_notice' );
+}

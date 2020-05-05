@@ -27,7 +27,23 @@ function tm_settings_init(  ) {
 		'tm_show_warnings_render', 
 		'pluginPage', 
 		'tm_pluginPage_section' 
-    );
+	);
+	add_settings_section(
+		'tm_pluginPage_section_archive', 
+		__( 'Archive Settings', 'theatre-manager' ), 
+		'tm_archive_section_callback', 
+		'pluginPage'
+	);
+	if (is_multisite()){
+		add_settings_field( 
+			'tm_show_archive', 
+			__( 'Use Show Archive', 'theatre-manager' ), 
+			'tm_archive_render', 
+			'pluginPage', 
+			'tm_pluginPage_section_archive' 
+		);
+	}
+	
 }
 
 //option render
@@ -39,6 +55,18 @@ function tm_show_warnings_render(  ) {
 }
 function tm_settings_section_callback(  ) { 
 	echo __( 'Theatre Show Settings', 'theatre-manager' );
+}
+function tm_archive_section_callback(  ) { 
+	echo __( '<p>In a multisite setup, this allows you to export shows to a second "archive" site</p>', 'theatre-manager' );
+	echo __( '<p>This should be enabled on the main site and NOT the archive site</p>', 'theatre-manager' );
+}
+if (is_multisite()){
+	function tm_archive_render(  ) { 
+		$options = get_option( 'tm_settings' );
+		?>
+		<input type='checkbox' name='tm_settings[tm_archive]' <?php if (isset($options['tm_archive'])) checked( $options['tm_archive'], 1 ); ?> value='1'>
+		<?php
+	}
 }
 
 //create page
