@@ -6,13 +6,6 @@
 
 // If called directly, abort
 if ( ! defined( 'ABSPATH' )) die;
-
-//if people enabled, do stuff differently
-$options = get_option( 'tm_settings' );
-$people = false;
-if (isset($options['tm_people']) && $options['tm_people'] == 1){
-    $people = true;
-}
 //create show type
 function tm_show_type(){
     $labels = array(
@@ -382,7 +375,9 @@ function tm_show_person_save($post_id, $post){
 
     $count = count( $members );
 
-    if ($people){
+    $options = get_option( 'tm_settings' );
+    if (isset($options['tm_people']) && $options['tm_people'] == 1){
+        error_log("People is set");
         for ( $i = 0; $i < $count; $i++ ) {
             if ( $roles[$i] != '' ) {
                 if ( $members[$i] != '' ){
@@ -499,7 +494,8 @@ function tm_show_crew_save($post_id, $post){
 
     $count = count( $members );
 
-    if ($people){
+    $options = get_option( 'tm_settings' );
+    if (isset($options['tm_people']) && $options['tm_people'] == 1){
         for ( $i = 0; $i < $count; $i++ ) {
             if ( $jobs[$i] != '' ) {
                 if ( $members[$i] != '' ){

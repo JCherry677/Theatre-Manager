@@ -1,3 +1,11 @@
+<?php
+//if people enabled, do stuff differently
+$options = get_option( 'tm_settings' );
+$people = false;
+if (isset($options['tm_people']) && $options['tm_people'] == 1){
+    $people = true;
+}
+?>
 <script type="text/javascript">
     jQuery(document).ready(function( $ ){
         $( '#add-crew-row' ).on('click', function() {

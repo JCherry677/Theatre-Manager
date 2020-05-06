@@ -1,3 +1,10 @@
+<?php
+//if people enabled, do stuff differently
+$options = get_option( 'tm_settings' );
+$people = false;
+if (isset($options['tm_people']) && $options['tm_people'] == 1){
+    $people = true;
+}?>
 <script type="text/javascript">
     var th_ajax_url = '<?php echo admin_url('admin-ajax.php'); ?>';
     jQuery(document).ready(function( $ ){
