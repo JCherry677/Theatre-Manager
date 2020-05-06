@@ -18,9 +18,11 @@
 </script>
 <div class="th_show_person_info">
     <div class="th_show_person_info_field">
-        <p style="font-weight: bold;">Members must be added first before adding them to a show!</p>
-        <p>Member names should be added to the Actors box in the format <code>name (id)</code></p>
-        <p>Enter the member's first name and then use the dropdown to ensure this format is correct</p>
+        <?php if($people){?>
+            <p style="font-weight: bold;">Members must be added first before adding them to a show!</p>
+            <p>Member names should be added to the Actors box in the format <code>name (id)</code></p>
+            <p>Enter the member's first name and then use the dropdown to ensure this format is correct</p>
+        <?php } ?>
         <table id="repeatable-fieldset-two" width="100%">
             <thead>
                 <tr>
@@ -33,14 +35,26 @@
                 <?php
                 $repeatable_fields = get_post_meta($post->ID, 'th_show_crew_info_data', true);
                 if ( $repeatable_fields ){
-                    foreach ( $repeatable_fields as $key => $value ) {
-                        foreach ($value as $item){?>
-                            <tr>
-                                <td><input type="text" class="widefat" name="crew-job[]" value="<?php echo esc_attr( $item ); ?>" /></td>
-                                <td><input type="text" class="widefat th_person_search_class" name="crew-person[]" value="<?php echo esc_attr(tm_name_lookup($key, 'theatre_person') . " (" . $key . ")" )?>" /></td>
-                                <td><a class="button remove-row" href="#">Remove</a></td>
-                            </tr>
-                        <?php }
+                    if ($people){
+                        foreach ( $repeatable_fields as $key => $value ) {
+                            foreach ($value as $item){?>
+                                <tr>
+                                    <td><input type="text" class="widefat" name="crew-job[]" value="<?php echo esc_attr( $item ); ?>" /></td>
+                                    <td><input type="text" class="widefat th_person_search_class" name="crew-person[]" value="<?php echo esc_attr(tm_name_lookup($key, 'theatre_person') . " (" . $key . ")" )?>" /></td>
+                                    <td><a class="button remove-row" href="#">Remove</a></td>
+                                </tr>
+                            <?php }
+                        }
+                    } else {
+                        foreach ( $repeatable_fields as $key => $value ) {
+                            foreach ($value as $item){?>
+                                <tr>
+                                    <td><input type="text" class="widefat" name="crew-job[]" value="<?php echo esc_attr( $item ); ?>" /></td>
+                                    <td><input type="text" class="widefat" name="crew-person[]" value="<?php echo esc_attr($key)?>" /></td>
+                                    <td><a class="button remove-row" href="#">Remove</a></td>
+                                </tr>
+                            <?php }
+                        }
                     }
                 }
                 ?>
@@ -48,7 +62,7 @@
                 <!-- empty hidden one for jQuery -->
                 <tr class="empty-crew-row screen-reader-text">
                     <td><input type="text" class="widefat" name="crew-job[]" /></td>
-                    <td><input type="text" class="widefat th_person_search_class" name="crew-person[]" value="" /></td>
+                    <td><input type="text" class="widefat <?php if($people){echo ('th_person_search_class');}?>" name="crew-person[]" value="" /></td>
                     <td><a class="button remove-row" href="#">Remove</a></td>
                 </tr>
             </tbody>

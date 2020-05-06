@@ -20,7 +20,14 @@ function tm_settings_init(  ) {
 		__( 'Manager Features', 'theatre-manager' ), 
 		'tm_settings_section_callback', 
 		'pluginPage'
-    );
+	);
+	add_settings_field( 
+		'tm_members', 
+		__( 'Use Members', 'theatre-manager' ), 
+		'tm_people_render', 
+		'pluginPage', 
+		'tm_pluginPage_section' 
+	);
 	add_settings_field( 
 		'tm_show_warnings', 
 		__( 'Use Show Content Warnings', 'theatre-manager' ), 
@@ -54,6 +61,12 @@ function tm_settings_init(  ) {
 }
 
 //option render
+function tm_people_render(  ) { 
+	$options = get_option( 'tm_settings' );
+	?>
+	<input type='checkbox' name='tm_settings[tm_people]' <?php if (isset($options['tm_people'])) checked( $options['tm_people'], 1 ); ?> value='1'>
+	<?php
+}
 function tm_show_warnings_render(  ) { 
 	$options = get_option( 'tm_settings' );
 	?>
@@ -67,7 +80,8 @@ function tm_committee_render(  ) {
 	<?php
 }
 function tm_settings_section_callback(  ) { 
-	echo __( 'Enable Features of the plugin', 'theatre-manager' );
+	echo __( '<p>Enable Features of the plugin</p>', 'theatre-manager' );
+	echo __( '<p>If Members are enabled, members must be registered before they can be added to shows</p>', 'theatre-manager');
 }
 function tm_archive_section_callback(  ) { 
 	echo __( '<p>In a multisite setup, this allows you to export shows to a second "archive" site</p>', 'theatre-manager' );

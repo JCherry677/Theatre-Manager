@@ -7,6 +7,12 @@
 // If called directly, abort
 if ( ! defined( 'ABSPATH' )) die;
 
+//if people enabled, do stuff differently
+$options = get_option( 'tm_settings' );
+$people = false;
+if (isset($options['tm_people']) && $options['tm_people'] == 1){
+    $people = true;
+}
 //create show type
 function tm_show_type(){
     $labels = array(
@@ -102,7 +108,7 @@ function create_show_taxonomies(){
 		'query_var'         => true,
 		'rewrite'           => array( 'slug' => 'season' ),
     );
-    register_taxonomy( 'season', array( 'theatre_show', 'theatre_committee' ), $args );
+    register_taxonomy( 'season', array( 'theatre_show' ), $args );
 
     //venue taxonomy - hierarchical
     $labels = array(
@@ -375,59 +381,79 @@ function tm_show_person_save($post_id, $post){
 
     $count = count( $members );
 
-    for ( $i = 0; $i < $count; $i++ ) {
-        if ( $roles[$i] != '' ) {
-            if ( $members[$i] != '' ){
-                preg_match('#\((.*?)\)#', $members[$i], $match);
-                if (array_key_exists($match[1], $new)){
-                    array_push($new[$match[1]], $roles[$i]);
-                } else {
-                    $new[$match[1]] = array( stripslashes( strip_tags( $roles[$i] )));
-                    array_push($known, $match[1]);
+    if ($people){
+        for ( $i = 0; $i < $count; $i++ ) {
+            if ( $roles[$i] != '' ) {
+                if ( $members[$i] != '' ){
+                    preg_match('#\((.*?)\)#', $members[$i], $match);
+                    if (array_key_exists($match[1], $new)){
+                        array_push($new[$match[1]], $roles[$i]);
+                    } else {
+                        $new[$match[1]] = array( stripslashes( strip_tags( $roles[$i] )));
+                        array_push($known, $match[1]);
+                    }
                 }
             }
         }
-    }
-    if ( !empty( $new ) && $new != $old ){
-        update_post_meta( $post_id, 'th_show_person_info_data', $new );
-    } elseif ( empty($new) && $old ) {
-        delete_post_meta( $post_id, 'th_show_person_info_data', $old );
-    }
-    
-    //save role details in person metadata 
-    foreach ($known as $person){
-        $member_new = array(); //create new array to store new data in
-        $show_roles = get_post_meta($person, 'th_show_roles', true);
-        $member_new[$post_id] = $new[$person];
-        if (!empty($show_roles)){            
-            //go through all current stored data
-            foreach ($show_roles as $show => $role) {
-                if ( (abs($show-$post_id) < PHP_FLOAT_EPSILON)){
-                    //update if same
-                    $member_new[$show] = $new[$person];
-                } else {
-                    //copy if not relevant
-                    $member_new[$show] = $role;
-                }
-            }
+        if ( !empty( $new ) && $new != $old ){
+            update_post_meta( $post_id, 'th_show_person_info_data', $new );
+        } elseif ( empty($new) && $old ) {
+            delete_post_meta( $post_id, 'th_show_person_info_data', $old );
         }
         
-        update_post_meta($person, 'th_show_roles', $member_new);
-    }
-
-    //remove records that no longer appear in data
-    foreach ($old as $key => $value){
-        if (!(in_array($key, $known))){
-            $member_new = array();
-            $show_roles = get_post_meta($key, 'th_show_roles', true);
-            foreach ($show_roles as $show => $role) {
-                if ( (abs($show-$post_id) < PHP_FLOAT_EPSILON)){
-                    //remove by not adding it
-                } else {
-                    $member_new[$show] = $role;
+        //save role details in person metadata 
+        foreach ($known as $person){
+            $member_new = array(); //create new array to store new data in
+            $show_roles = get_post_meta($person, 'th_show_roles', true);
+            $member_new[$post_id] = $new[$person];
+            if (!empty($show_roles)){            
+                //go through all current stored data
+                foreach ($show_roles as $show => $role) {
+                    if ( (abs($show-$post_id) < PHP_FLOAT_EPSILON)){
+                        //update if same
+                        $member_new[$show] = $new[$person];
+                    } else {
+                        //copy if not relevant
+                        $member_new[$show] = $role;
+                    }
                 }
             }
-            update_post_meta($key, 'th_show_roles', $member_new);
+            
+            update_post_meta($person, 'th_show_roles', $member_new);
+        }
+
+        //remove records that no longer appear in data
+        foreach ($old as $key => $value){
+            if (!(in_array($key, $known))){
+                $member_new = array();
+                $show_roles = get_post_meta($key, 'th_show_roles', true);
+                foreach ($show_roles as $show => $role) {
+                    if ( (abs($show-$post_id) < PHP_FLOAT_EPSILON)){
+                        //remove by not adding it
+                    } else {
+                        $member_new[$show] = $role;
+                    }
+                }
+                update_post_meta($key, 'th_show_roles', $member_new);
+            }
+        }
+    } else {
+        for ( $i = 0; $i < $count; $i++ ) {
+            if ( $roles[$i] != '' ) {
+                if ( $members[$i] != '' ){
+                    if (array_key_exists($members[$i], $new)){
+                        array_push($new[$members[$i]], $roles[$i]);
+                    } else {
+                        $new[$members[$i]] = array( stripslashes( strip_tags( $roles[$i] )));
+                        array_push($known, $members[$i]);
+                    }
+                }
+            }
+        }
+        if ( !empty( $new ) && $new != $old ){
+            update_post_meta( $post_id, 'th_show_person_info_data', $new );
+        } elseif ( empty($new) && $old ) {
+            delete_post_meta( $post_id, 'th_show_person_info_data', $old );
         }
     }
 }
@@ -472,61 +498,81 @@ function tm_show_crew_save($post_id, $post){
 
     $count = count( $members );
 
-    for ( $i = 0; $i < $count; $i++ ) {
-        if ( $jobs[$i] != '' ) {
-            if ( $members[$i] != '' ){
-                preg_match('#\((.*?)\)#', $members[$i], $match);
-                if (array_key_exists($match[1], $new)){
-                    array_push($new[$match[1]], $jobs[$i]);
-                } else {
-                    $new[$match[1]] = array( stripslashes( strip_tags( $jobs[$i] )));
-                    array_push($known, $match[1]);
+    if ($people){
+        for ( $i = 0; $i < $count; $i++ ) {
+            if ( $jobs[$i] != '' ) {
+                if ( $members[$i] != '' ){
+                    preg_match('#\((.*?)\)#', $members[$i], $match);
+                    if (array_key_exists($match[1], $new)){
+                        array_push($new[$match[1]], $jobs[$i]);
+                    } else {
+                        $new[$match[1]] = array( stripslashes( strip_tags( $jobs[$i] )));
+                        array_push($known, $match[1]);
+                    }
                 }
             }
+        }        
+        if ( empty($new) && $old ){
+            delete_post_meta( $post_id, 'th_show_crew_info_data', $old );
+        } else{
+            update_post_meta( $post_id, 'th_show_crew_info_data', $new );
         }
-    }        
-    if ( empty($new) && $old ){
-        delete_post_meta( $post_id, 'th_show_crew_info_data', $old );
-    } else{
-        update_post_meta( $post_id, 'th_show_crew_info_data', $new );
-    }
 
-    //save crew details in person metadata 
-    foreach ($known as $person){
-        $member_new = array(); //create new array to store new data in
-        $crew_roles = get_post_meta($person, 'th_crew_roles', true);
-        $member_new[$post_id] = $new[$person];
-        if (empty($crew_roles)){            
+        //save crew details in person metadata 
+        foreach ($known as $person){
+            $member_new = array(); //create new array to store new data in
+            $crew_roles = get_post_meta($person, 'th_crew_roles', true);
             $member_new[$post_id] = $new[$person];
-        } else {
-            //go through all current stored data
-            foreach ($crew_roles as $show => $role) {
-                if ( (abs($show-$post_id) < PHP_FLOAT_EPSILON)){
-                    //update if same
-                    $member_new[$show] = $new[$person];
-                } else {
-                    //copy if not relevant
-                    $member_new[$show] = $role;
+            if (empty($crew_roles)){            
+                $member_new[$post_id] = $new[$person];
+            } else {
+                //go through all current stored data
+                foreach ($crew_roles as $show => $role) {
+                    if ( (abs($show-$post_id) < PHP_FLOAT_EPSILON)){
+                        //update if same
+                        $member_new[$show] = $new[$person];
+                    } else {
+                        //copy if not relevant
+                        $member_new[$show] = $role;
+                    }
                 }
+            }
+            
+            update_post_meta($person, 'th_crew_roles', $member_new);
+        }
+
+        //remove records that no longer appear in data
+        foreach ($old as $key => $value){
+            if (!(in_array($key, $known))){
+                $member_new = array();
+                $crew_roles = get_post_meta($key, 'th_crew_roles', true);
+                foreach ($crew_roles as $show => $role) {
+                    if ( (abs($show-$post_id) < PHP_FLOAT_EPSILON)){
+                        //remove by not adding it
+                    } else {
+                        $member_new[$show] = $role;
+                    }
+                }
+                update_post_meta($key, 'th_crew_roles', $member_new);
             }
         }
-        
-        update_post_meta($person, 'th_crew_roles', $member_new);
-    }
-
-    //remove records that no longer appear in data
-    foreach ($old as $key => $value){
-        if (!(in_array($key, $known))){
-            $member_new = array();
-            $crew_roles = get_post_meta($key, 'th_crew_roles', true);
-            foreach ($crew_roles as $show => $role) {
-                if ( (abs($show-$post_id) < PHP_FLOAT_EPSILON)){
-                    //remove by not adding it
-                } else {
-                    $member_new[$show] = $role;
+    } else {
+        for ( $i = 0; $i < $count; $i++ ) {
+            if ( $jobs[$i] != '' ) {
+                if ( $members[$i] != '' ){
+                    if (array_key_exists($members[$i], $new)){
+                        array_push($new[$members[$i]], $jobs[$i]);
+                    } else {
+                        $new[$members[$i]] = array( stripslashes( strip_tags( $jobs[$i] )));
+                        array_push($known, $members[$i]);
+                    }
                 }
             }
-            update_post_meta($key, 'th_crew_roles', $member_new);
+        }        
+        if ( empty($new) && $old ){
+            delete_post_meta( $post_id, 'th_show_crew_info_data', $old );
+        } else{
+            update_post_meta( $post_id, 'th_show_crew_info_data', $new );
         }
     }
 }
@@ -647,9 +693,17 @@ function tm_show_shortcode() {
     if (is_null( $cast ) || empty($cast)){
         $casttext = "This show has no known cast";
     } else {
-        foreach ( $cast as $actor => $role ) {
-            foreach ($role as $item){
-                $casttext = $casttext . "<tr><td><a href=\"" . get_post_permalink($actor)."\">" . tm_name_lookup($actor, 'theatre_person') . "</a> as " . $item . "</td></tr>";
+        if($person){
+            foreach ( $cast as $actor => $role ) {
+                foreach ($role as $item){
+                    $casttext = $casttext . "<tr><td><a href=\"" . get_post_permalink($actor)."\">" . tm_name_lookup($actor, 'theatre_person') . "</a> as " . $item . "</td></tr>";
+                }
+            }
+        } else {
+            foreach ( $cast as $actor => $role ) {
+                foreach ($role as $item){
+                    $casttext = $casttext . "<tr><td>" . $actor . " as " . $item . "</td></tr>";
+                }
             }
         }
     }
