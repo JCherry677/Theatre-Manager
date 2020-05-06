@@ -1,4 +1,6 @@
 <?php
+// If called directly, abort
+if ( ! defined( 'ABSPATH' )) die;
 
 //load file if committee enabled
 $options = get_option( 'tm_settings' );

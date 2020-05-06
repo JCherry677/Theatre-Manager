@@ -23,7 +23,7 @@ function tm_settings_init(  ) {
 	);
 	add_settings_field( 
 		'tm_members', 
-		__( 'Use Members', 'theatre-manager' ), 
+		__( 'Use Members in shows', 'theatre-manager' ), 
 		'tm_people_render', 
 		'pluginPage', 
 		'tm_pluginPage_section' 
