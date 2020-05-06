@@ -209,7 +209,7 @@ function tm_person_info_save( $post_id, $post ) {
  * @since 0.5
  */
 function tm_person_shortcode() {
-    $name = (tm_name_lookup(get_the_ID(), 'theatre_person'));
+    $name = (get_the_title(get_the_ID()));
     $info = get_post_meta(get_the_ID(), 'th_person_info_data');
     $shows = get_post_meta(get_the_ID(), 'th_show_roles')[0];
     $crews = get_post_meta(get_the_ID(), 'th_crew_roles')[0];
@@ -234,7 +234,7 @@ function tm_person_shortcode() {
     } else{
         $casttext = $casttext . "<table><thead><td><h6>Show</h6></td><td><h6>Role(s)</h6></td></thead><tbody>";
         foreach($shows as $show => $role){
-            $casttext = $casttext . "<tr><td><a href=\"" . get_post_permalink($show)."\">". tm_name_lookup($show, 'theatre_show') . "</a></td><td><table><tbody>";
+            $casttext = $casttext . "<tr><td><a href=\"" . get_post_permalink($show)."\">". get_the_title($show) . "</a></td><td><table><tbody>";
             foreach ($role as $item){
                 $casttext = $casttext . "<tr><td>" . $item . "</td></tr>";
             }
@@ -250,7 +250,7 @@ function tm_person_shortcode() {
     } else{
         $crewtext = $crewtext . "<table><thead><td><h6>Show</h6></td><td><h6>Role(s)</h6></td></thead><tbody>";
         foreach($crews as $show => $role){
-            $crewtext = $crewtext . "<tr><td><a href=\"" . get_post_permalink($show)."\">". tm_name_lookup($show, 'theatre_show')  . "</a></td><td><table><tbody>";
+            $crewtext = $crewtext . "<tr><td><a href=\"" . get_post_permalink($show)."\">". get_the_title($show)  . "</a></td><td><table><tbody>";
             foreach ($role as $item){
                 $crewtext = $crewtext . "<tr><td>" . $item . "</td></tr>";
             }
@@ -268,9 +268,9 @@ function tm_person_shortcode() {
         } else {
             $committeestext = $committeestext . "<table><thead><td><h6>Committee Period</h6></td><td><h6>Role</h6></td></thead><tbody>";
             foreach($committees as $committee => $role){
-                $committeestext = $committeestext . "<tr><td><a href=\"" . get_post_permalink($committee)."\">" . tm_name_lookup($committee, 'theatre_committee') . "</a></td><td><table><tbody>";
+                $committeestext = $committeestext . "<tr><td><a href=\"" . get_post_permalink($committee)."\">" . get_the_title($committee) . "</a></td><td><table><tbody>";
                 foreach ($role as $item){
-                    $committeestext = $committeestext . "<tr><td><a href=\"" . get_post_permalink($item)."\">" . tm_name_lookup($item, 'theatre_role') . "</a></td></tr>";
+                    $committeestext = $committeestext . "<tr><td><a href=\"" . get_post_permalink($item)."\">" . get_the_title($item) . "</a></td></tr>";
                 }
                 $committeestext = $committeestext . "</tbody></table></td></tr>";
             }

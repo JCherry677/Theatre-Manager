@@ -40,7 +40,7 @@
                             foreach ($value as $item){?>
                                 <tr>
                                     <td><input type="text" class="widefat" name="crew-job[]" value="<?php echo esc_attr( $item ); ?>" /></td>
-                                    <td><input type="text" class="widefat th_person_search_class" name="crew-person[]" value="<?php echo esc_attr(tm_name_lookup($key, 'theatre_person') . " (" . $key . ")" )?>" /></td>
+                                    <td><input type="text" class="widefat th_person_search_class" name="crew-person[]" value="<?php echo esc_attr(get_the_title($key) . " (" . $key . ")" )?>" /></td>
                                     <td><a class="button remove-row" href="#">Remove</a></td>
                                 </tr>
                             <?php }

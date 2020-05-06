@@ -86,7 +86,7 @@ if (isset($options['tm_committees']) && $options['tm_committees'] == 1){
 
     function tm_role_enter_title( $input ) {
         if ( 'theatre_role' === get_post_type() ) {
-            return __( 'Content Warning Name', 'your_textdomain' );
+            return __( 'Committee Role Name', 'your_textdomain' );
         }
 
         return $input;
@@ -104,8 +104,8 @@ if (isset($options['tm_committees']) && $options['tm_committees'] == 1){
             $committeestext = "<h3>Role History</h3>";
             $committeestext = $committeestext . "<table><thead><td><h6>Committee Year</h6></td><td><h6>Member</h6></td></thead><tbody>";
             foreach ( $people as $year => $person ) {
-                $committeestext = $committeestext . "<tr><td><a href=\"" . get_post_permalink($year)."\">" . tm_name_lookup($year, 'theatre_committee') . "</a></td>";
-                $committeestext = $committeestext . "<td><a href=\"" . get_post_permalink($person)."\">" . tm_name_lookup($person, 'theatre_person') . "</a></td></tr>";
+                $committeestext = $committeestext . "<tr><td><a href=\"" . get_post_permalink($year)."\">" . get_the_title($year) . "</a></td>";
+                $committeestext = $committeestext . "<td><a href=\"" . get_post_permalink($person)."\">" . get_the_title($person) . "</a></td></tr>";
             }
             $committeestext = $committeestext . "</tbody></table>";
             //return all

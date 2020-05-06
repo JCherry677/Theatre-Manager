@@ -679,7 +679,7 @@ function tm_show_shortcode() {
         } else {
             $data = $data . '<p> This show\'s Content Warnings include:</p><p style="text-align: center !important;">';
             foreach ( $content as $item) {
-                $data = $data . "<a href=\"" . get_post_permalink($item['warning'])."\">" . tm_name_lookup($item['warning'], 'theatre_warning') . "</a>, ";
+                $data = $data . "<a href=\"" . get_post_permalink($item['warning'])."\">" . get_the_title($item['warning'], 'theatre_warning') . "</a>, ";
             }
             $data = substr($data, 0, -2);
             $data = $data . "</p>";
@@ -697,7 +697,7 @@ function tm_show_shortcode() {
         if($person){
             foreach ( $cast as $actor => $role ) {
                 foreach ($role as $item){
-                    $casttext = $casttext . "<tr><td><a href=\"" . get_post_permalink($actor)."\">" . tm_name_lookup($actor, 'theatre_person') . "</a> as " . $item . "</td></tr>";
+                    $casttext = $casttext . "<tr><td><a href=\"" . get_post_permalink($actor)."\">" . get_the_title($actor) . "</a> as " . $item . "</td></tr>";
                 }
             }
         } else {
@@ -717,7 +717,7 @@ function tm_show_shortcode() {
     } else {
         foreach ( $crew as $pos => $job ) {
             foreach ($job as $item){
-                $casttext = $casttext . "<tr><td>" . $item . ": <a href=\"" . get_post_permalink($pos)."\">" . tm_name_lookup($pos, 'theatre_person') . "</td></tr>";
+                $casttext = $casttext . "<tr><td>" . $item . ": <a href=\"" . get_post_permalink($pos)."\">" . get_the_title($pos) . "</td></tr>";
             }
         }
     }

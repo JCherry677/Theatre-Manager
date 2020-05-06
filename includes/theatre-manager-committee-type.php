@@ -265,9 +265,9 @@ if (isset($options['tm_committees']) && $options['tm_committees'] == 1){
         foreach ( $people as $person => $role ) {
             $committeestext = $committeestext . "<tr><td><table><tbody>";
             foreach ($role as $item){
-                $committeestext = $committeestext . "<tr><td><a href=\"" . get_post_permalink($item)."\">" . tm_name_lookup($item, 'theatre_role') . "</a></td></tr>";
+                $committeestext = $committeestext . "<tr><td><a href=\"" . get_post_permalink($item)."\">" . get_the_title($item, 'theatre_role') . "</a></td></tr>";
             }
-            $committeestext = $committeestext . "</tbody></table></td><td><a href=\"" . get_post_permalink($person)."\">" . tm_name_lookup($person, 'theatre_person') . "</a></td></tr>";
+            $committeestext = $committeestext . "</tbody></table></td><td><a href=\"" . get_post_permalink($person)."\">" . get_the_title($person) . "</a></td></tr>";
         }
         $committeestext = $committeestext . "</tbody></table>";
         //return all
@@ -290,10 +290,10 @@ if (isset($options['tm_committees']) && $options['tm_committees'] == 1){
             }
             $count += 1;
             $committeestext = $committeestext . "<td><table><tbody>";
-            $committeestext = $committeestext . "<tr><td><img src=" . get_the_post_thumbnail_url($person) . "/></td></tr>";
-            $committeestext = $committeestext . "<tr><td><a href=\"" . get_post_permalink($person)."\">" . tm_name_lookup($person, 'theatre_person') . "</a></td></tr>";
+            $committeestext = $committeestext . "<tr><td>" . get_the_post_thumbnail($person) . "</td></tr>";
+            $committeestext = $committeestext . "<tr><td><a href=\"" . get_post_permalink($person)."\">" . get_the_title($person) . "</a></td></tr>";
             foreach ($role as $item){
-                $committeestext = $committeestext . "<tr><td><a href=\"" . get_post_permalink($item)."\">" . tm_name_lookup($item, 'theatre_role') . "</a></td></tr>";
+                $committeestext = $committeestext . "<tr><td><a href=\"" . get_post_permalink($item)."\">" . get_the_title($item) . "</a></td></tr>";
             }
             $email = get_post_meta($person, 'tm_person_email', true);
             if ($email == ""){

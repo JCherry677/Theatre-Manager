@@ -82,22 +82,6 @@ add_filter( 'the_content', 'tm_shortcodes_on_posts' );
 /**
  * Utility Functions
  */
-
-/** 
- * tm_name_lookup - get name from id
- * @since 0.6
- */
-function tm_name_lookup($name_id, $type){
-    $query = new WP_Query( 'post_type=' . $type );
-    while ( $query->have_posts() ) {
-        $query->the_post();
-        $id = get_the_ID();
-        if($id == $name_id){
-            return get_the_title();
-        }
-    }
-    return false;
-}
 /** 
  * tm_id_lookup - get id from name
  * @since 0.6
