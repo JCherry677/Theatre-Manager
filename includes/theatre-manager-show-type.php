@@ -40,6 +40,7 @@ function tm_show_type(){
         'rewrite'       => array('slug' => 'shows'),
         'show_in_rest'  => false, //true => Gutenberg editor, false => old editor
         'has_archive'   => true,
+        'menu_icon'     => 'dashicons-tickets-alt',
     );
 
     register_post_type('theatre_show', $args);

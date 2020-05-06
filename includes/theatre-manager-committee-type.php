@@ -36,6 +36,7 @@ if (isset($options['tm_committees']) && $options['tm_committees'] == 1){
             'rewrite'       => array('slug' => 'committee'),
             'show_in_rest'  => false, //true => Gutenberg editor, false => old editor
             'has_archive'   => true,
+            'menu_icon'     => 'dashicons-groups',
         );
 
         register_post_type('theatre_committee', $args);
@@ -273,4 +274,38 @@ if (isset($options['tm_committees']) && $options['tm_committees'] == 1){
         return $committeestext;
     }
     add_shortcode( 'committee_data', 'tm_committee_shortcode' );
+
+    function tm_committee_nice_shortcode($atts) {
+        $vars = shortcode_atts( array(
+            'committee_id' => '0'
+        ), $atts);
+        $people = get_post_meta($vars['committee_id'], 'th_committee_member_data', true);
+
+        $count = 0;
+        $committeestext = $committeestext . "<table><tbody><tr>";
+        foreach ( $people as $person => $role ) {
+            if ($count >= 5){
+                $committeestext = $committeestext . "</tr><tr>";
+                $count = 0;
+            }
+            $count += 1;
+            $committeestext = $committeestext . "<td><table><tbody>";
+            $committeestext = $committeestext . "<tr><td><img src=" . get_the_post_thumbnail_url($person) . "/></td></tr>";
+            $committeestext = $committeestext . "<tr><td><a href=\"" . get_post_permalink($person)."\">" . tm_name_lookup($person, 'theatre_person') . "</a></td></tr>";
+            foreach ($role as $item){
+                $committeestext = $committeestext . "<tr><td><a href=\"" . get_post_permalink($item)."\">" . tm_name_lookup($item, 'theatre_role') . "</a></td></tr>";
+            }
+            $email = get_post_meta($person, 'tm_person_email', true);
+            if ($email == ""){
+                $committeestext = $committeestext . "<tr><td>Email Unknown</td></tr>";
+            } else {
+                $committeestext = $committeestext . "<tr><td><a href=\"mailto:" . $email . "\">" . $email . "</a></td></tr>";
+            }
+            $committeestext = $committeestext . "</tbody></table></td>";
+        }
+        $committeestext = $committeestext . "</tbody></table>";
+        //return all
+        return $committeestext;
+    }
+    add_shortcode( 'committee_layout', 'tm_committee_nice_shortcode' );
 }

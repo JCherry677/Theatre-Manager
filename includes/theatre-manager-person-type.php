@@ -34,6 +34,7 @@ function tm_person_type(){
         'rewrite'       => array('slug' => 'members'),
         'show_in_rest'  => false, //true => Gutenberg editor, false => old editor
         'has_archive'   => true,
+        'menu_icon'     => 'dashicons-admin-users',
     );
 
     register_post_type('theatre_person', $args);
@@ -196,6 +197,9 @@ function tm_person_info_save( $post_id, $post ) {
         update_post_meta( $post_id, 'th_person_info_data', $new );
     elseif ( empty($new) && $old )
     delete_post_meta( $post_id, 'th_person_info_data', $old );
+
+    //save email
+    update_post_meta( $post_id, 'tm_person_email', sanitize_text_field( $_POST['tm_person_email'] ) );
 }
 
 //------------------------------------------------------------------------------------------
