@@ -105,7 +105,7 @@ if (isset($options['tm_committees']) && $options['tm_committees'] == 1){
             $committeestext = $committeestext . "<table><thead><td><h6>Committee Year</h6></td><td><h6>Member</h6></td></thead><tbody>";
             foreach ( $people as $year => $person ) {
                 $committeestext = $committeestext . "<tr><td><a href=\"" . get_post_permalink($year)."\">" . get_the_title($year) . "</a></td>";
-                $committeestext = $committeestext . "<td><a href=\"" . get_post_permalink($person)."\">" . get_the_title($person) . "</a></td></tr>";
+                $committeestext = $committeestext . "<td><!--<a href=\"" . get_post_permalink($person)."\">-->" . get_person_name($person) . "</a></td></tr>";
             }
             $committeestext = $committeestext . "</tbody></table>";
             //return all

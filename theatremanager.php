@@ -5,7 +5,7 @@
  * @wordpress-plugin
  * Plugin Name: Theatre Manager
  * Description: A plugin to manage theatrical productions, storing infomation about who is involved. Can also be used as an archive
- * Version: 1.0
+ * Version: 1.1
  * Requires at least: 5.4
  * Requires PHP: 7.4
  * Author: John
@@ -19,13 +19,13 @@ if ( ! defined( 'ABSPATH' )) die;
 
 
 //fetch relevant pages
-require_once(dirname(__FILE__) . '/tm-includes/tm-person-type.php'); // - replaced with tm-person, will be removed soon
+//require_once(dirname(__FILE__) . '/tm-includes/tm-person-type.php'); // - replaced with tm-person, will be removed soon
+require_once(dirname(__FILE__) . '/tm-admin/tm-options.php');
+require_once(dirname(__FILE__) . '/tm-includes/tm-show-type.php');
+require_once(dirname(__FILE__) . '/tm-includes/tm-warning-type.php');
 require_once(dirname(__FILE__) . '/tm-includes/tm-person.php');
 require_once(dirname(__FILE__) . '/tm-includes/tm-committee-type.php');
 require_once(dirname(__FILE__) . '/tm-includes/tm-committee-role-type.php');
-require_once(dirname(__FILE__) . '/tm-includes/tm-show-type.php');
-require_once(dirname(__FILE__) . '/tm-includes/tm-warning-type.php');
-require_once(dirname(__FILE__) . '/tm-admin/tm-options.php');
 
 //------------------------------------------------------------------------------------------
 /**
@@ -44,7 +44,7 @@ register_activation_hook( __FILE__, 'tm_activate');
 function tm_deactivate() {
     // Unregister the post type, so the rules are no longer in memory.
     unregister_post_type( 'theatre_show' );
-    unregister_post_type( 'theatre_member' );
+    //unregister_post_type( 'theatre_member' );
     unregister_post_type( 'theatre_committee' );
     unregister_post_type( 'theatre_committee_role' );
     unregister_post_type( 'theatre_warning' );
@@ -149,18 +149,16 @@ add_action('wp_ajax_nopriv_th_person_lookup', 'th_person_lookup');
 
 function th_person_lookup() {
     global $wpdb;
-
+    $table_name = $wpdb->base_prefix . 'tm_people';
     $search = $wpdb->esc_like($_REQUEST['q']);
 
-    $query = 'SELECT ID,post_title FROM ' . $wpdb->posts . '
-        WHERE post_title LIKE \'' . $search . '%\'
-        AND post_type = \'theatre_person\'
-        AND post_status = \'publish\'
-        ORDER BY post_title ASC';
+    $query = 'SELECT id,name FROM ' . $table_name . '
+        WHERE name LIKE \'' . $search . '%\'
+        ORDER BY name ASC';
     $rows = $wpdb->get_results($query);
     foreach ($rows as $row) {
-        $post_title = $row->post_title;
-        $id = $row->ID;
+        $post_title = $row->name;
+        $id = $row->id;
         $text = $post_title . " (" . $id . ")\n";
         echo $text;
     }

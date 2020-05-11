@@ -96,7 +96,7 @@
                         foreach ($value as $item){?>
                             <tr>
                                 <td><input type="text" class="widefat th_role_search_class" name="postition[]" value="<?php echo esc_attr(get_the_title($item) . " (" . $item . ")" )?>" /></td>
-                                <td><input type="text" class="widefat th_person_search_class" name="member[]" value="<?php echo esc_attr(get_the_title($key) . " (" . $key . ")" )?>" /></td>
+                                <td><input type="text" class="widefat th_person_search_class" name="member[]" value="<?php echo esc_attr(get_person_name($key) . " (" . $key . ")" )?>" /></td>
                                 <td><a class="button remove-row" href="#">Remove</a></td>
                             </tr>
                         <?php }

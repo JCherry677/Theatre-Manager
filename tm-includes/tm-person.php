@@ -13,6 +13,11 @@ if ( ! class_exists( 'WP_List_Table' ) ) {
 	require_once( ABSPATH . 'wp-admin/includes/class-wp-list-table.php' );
 }
 
+/**
+ * person_list class
+ * creates and formats a list for all people types
+ * @since 1.0
+ */
 class person_list extends WP_List_Table {
 
     /** Constructor */
@@ -39,7 +44,7 @@ class person_list extends WP_List_Table {
     
         $sql = "SELECT * FROM {$wpdb->base_prefix}tm_people";
         if (!empty($search)){
-            $sql .= ' WHERE (name LIKE \'' . $search . '\' OR email LIKE \'' . $search . '\')';
+            $sql .= ' WHERE (name LIKE \'' . $search . '%\' OR email LIKE \'' . $search . '%\')';
         }
         if ( ! empty( $_REQUEST['orderby'] ) ) {
             $sql .= ' ORDER BY ' . esc_sql( $_REQUEST['orderby'] );
@@ -240,6 +245,11 @@ class person_list extends WP_List_Table {
     }
 }
 
+/**
+ * Class TM_Person
+ * gets data for person class
+ * adds an edit page
+ */
 class TM_Person {
     // class instance
 	static $instance;
@@ -260,6 +270,10 @@ class TM_Person {
         return $value;
     }
     
+    /**
+     * Create menu items
+     * @since 1.0
+     */
     public function plugin_menu() {
     
         $hook = add_menu_page(
@@ -284,6 +298,7 @@ class TM_Person {
         );
     
     }
+
     /** 
      * Singleton instance 
      * @since 1.0
@@ -533,10 +548,44 @@ class TM_Person {
     }
 }
 
+add_action( 'wp_before_admin_bar_render', 'tm_add_person_item' );
+
+function tm_add_person_item(){
+    global $wp_admin_bar;
+    //Get a reference to the new-content node to modify.
+    $new_content_node = $wp_admin_bar->get_node('new-content');
+    //Change href
+    $new_content_node->href = '#';
+    //Update Node.
+    $wp_admin_bar->add_node($new_content_node);
+
+    //Remove add-user and add again in a bit.
+    $wp_admin_bar->remove_menu('new-user');
+
+    // Adding a new custom menu item that did not previously exist.
+    $wp_admin_bar->add_menu( array(
+        'id'    => 'new-member',
+        'title' => 'Member',
+        'parent'=> 'new-content',
+        'href'  => get_site_url() . '/wp-admin/admin.php?page=tm_members_edit',)
+    );
+
+    $wp_admin_bar->add_menu( array(
+        'id'    => 'new-user',
+        'title' => 'User',
+        'parent'=> 'new-content',
+        'href'  => get_site_url() . '/wp-admin/user-new.php',)
+    );
+
+}
+
+//create instance of TM_Person
 add_action( 'plugins_loaded', function () {
     TM_Person::get_instance();
 } );
 
+//----------------------------------------------------------------------------------------------------------
+//Global utility functions
 function get_person_info($person_id){
     global $wpdb;
     $returns = $wpdb->get_row("SELECT * FROM {$wpdb->base_prefix}tm_people WHERE id=$person_id", ARRAY_A);
@@ -552,5 +601,70 @@ function get_person_ids(){
 function get_person_name($person_id){
     global $wpdb;
     $name = $wpdb->get_col("SELECT name FROM {$wpdb->base_prefix}tm_people WHERE id = $person_id");
-    return $name;
+    return $name[0];
+}
+
+/**
+ * Returns $column of person's data
+ * @param $person_id
+ * @param $column - column to fetch
+ * @param $serialized - whether the column should be returned as an unserialised array
+ * @since 1.1
+ * @see get_person_info() to get all data
+ * @see get_person_name() to get name
+ */
+function get_person_data($person_id, $column, $serialized = false){
+    if (!is_numeric($person_id)){
+        die ("person_id should be numeric, '" . $person_id . "' given");
+    }
+    global $wpdb;
+    $data = $wpdb->get_col("SELECT $column FROM {$wpdb->base_prefix}tm_people WHERE id = $person_id");
+    if ($serialized){
+        return unserialize($data[0]);
+    } else {
+        return $data[0];
+    }
+}
+
+/**
+ * Sets data for given person id and column
+ * @param $person_id
+ * @param $column
+ * @param $data - unserialized
+ * @param $serialized - whether to serialize the data
+ * @since 1.1
+ */
+function set_person_data($person_id, $column, $data, $serialized = false){
+    error_log($person_id);
+    if (!is_numeric($person_id)){
+        wp_die ("person_id should be numeric, '" . $person_id . "' given");
+    }
+    global $wpdb;
+    if ($serialized){
+        $data = serialize($data);
+    }
+    $value = array($column => $data);
+    $returns = $wpdb->update(
+        "{$wpdb->base_prefix}tm_people",    //table
+        $value,                             //data
+        array (                             //where
+            'id' => $person_id
+        ),
+    );
+    error_log($returns);
+}
+
+//add custom archive
+add_action('init', 'tm_rewrite_init');
+function tm_rewrite_init(){
+    add_rewrite_rule(
+        'properties/([0-9]+)/?$',
+        //'index.php?pagename=properties&property_id=$matches[1]',
+        'wp-admin/admin.php?page=tm_members',
+        'top' );
+}
+add_filter( 'query_vars', 'tm_query_vars' );
+function tm_query_vars( $query_vars ){
+    $query_vars[] = 'property_id';
+    return $query_vars;
 }

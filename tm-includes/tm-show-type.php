@@ -377,7 +377,6 @@ function tm_show_person_save($post_id, $post){
 
     $options = get_option( 'tm_settings' );
     if (isset($options['tm_people']) && $options['tm_people'] == 1){
-        error_log("People is set");
         for ( $i = 0; $i < $count; $i++ ) {
             if ( $roles[$i] != '' ) {
                 if ( $members[$i] != '' ){
@@ -400,7 +399,7 @@ function tm_show_person_save($post_id, $post){
         //save role details in person metadata 
         foreach ($known as $person){
             $member_new = array(); //create new array to store new data in
-            $show_roles = get_post_meta($person, 'th_show_roles', true);
+            $show_roles = get_person_data($person, "cast", true);
             $member_new[$post_id] = $new[$person];
             if (!empty($show_roles)){            
                 //go through all current stored data
@@ -414,15 +413,14 @@ function tm_show_person_save($post_id, $post){
                     }
                 }
             }
-            
-            update_post_meta($person, 'th_show_roles', $member_new);
+            set_person_data($person, "cast", $member_new, true);
         }
 
         //remove records that no longer appear in data
         foreach ($old as $key => $value){
             if (!(in_array($key, $known))){
                 $member_new = array();
-                $show_roles = get_post_meta($key, 'th_show_roles', true);
+                $show_roles = get_person_data($key, "cast", true);
                 foreach ($show_roles as $show => $role) {
                     if ( (abs($show-$post_id) < PHP_FLOAT_EPSILON)){
                         //remove by not adding it
@@ -430,7 +428,7 @@ function tm_show_person_save($post_id, $post){
                         $member_new[$show] = $role;
                     }
                 }
-                update_post_meta($key, 'th_show_roles', $member_new);
+                set_person_data($key, "cast", $member_new, true);
             }
         }
     } else {
@@ -518,7 +516,7 @@ function tm_show_crew_save($post_id, $post){
         //save crew details in person metadata 
         foreach ($known as $person){
             $member_new = array(); //create new array to store new data in
-            $crew_roles = get_post_meta($person, 'th_crew_roles', true);
+            $crew_roles = get_person_data($person, "crew", true);
             $member_new[$post_id] = $new[$person];
             if (empty($crew_roles)){            
                 $member_new[$post_id] = $new[$person];
@@ -535,14 +533,14 @@ function tm_show_crew_save($post_id, $post){
                 }
             }
             
-            update_post_meta($person, 'th_crew_roles', $member_new);
+            set_person_data($person, "crew", $member_new, true);
         }
 
         //remove records that no longer appear in data
         foreach ($old as $key => $value){
             if (!(in_array($key, $known))){
                 $member_new = array();
-                $crew_roles = get_post_meta($key, 'th_crew_roles', true);
+                $crew_roles = get_person_data($key, "crew", true);
                 foreach ($crew_roles as $show => $role) {
                     if ( (abs($show-$post_id) < PHP_FLOAT_EPSILON)){
                         //remove by not adding it
@@ -550,7 +548,7 @@ function tm_show_crew_save($post_id, $post){
                         $member_new[$show] = $role;
                     }
                 }
-                update_post_meta($key, 'th_crew_roles', $member_new);
+                set_person_data($key, "crew", $member_new, true);
             }
         }
     } else {
@@ -658,6 +656,12 @@ add_action( 'admin_init', 'add_admin_menu_separator' );
  * @since 0.5
  */
 function tm_show_shortcode() {
+    //if people enabled, do stuff differently
+    $options = get_option( 'tm_settings' );
+    $people = false;
+    if (isset($options['tm_people']) && $options['tm_people'] == 1){
+        $people = true;
+    }
     $author = get_post_meta(get_the_ID(), 'th_show_info_author', true);
     if ($author == "") $author =  "unknown";
     $start = implode(" ", get_post_meta(get_the_ID(), 'th_show_info_start_date'));
@@ -690,17 +694,9 @@ function tm_show_shortcode() {
     if (is_null( $cast ) || empty($cast)){
         $casttext = "This show has no known cast";
     } else {
-        if($person){
-            foreach ( $cast as $actor => $role ) {
-                foreach ($role as $item){
-                    $casttext = $casttext . "<tr><td><a href=\"" . get_post_permalink($actor)."\">" . get_the_title($actor) . "</a> as " . $item . "</td></tr>";
-                }
-            }
-        } else {
-            foreach ( $cast as $actor => $role ) {
-                foreach ($role as $item){
-                    $casttext = $casttext . "<tr><td>" . $actor . " as " . $item . "</td></tr>";
-                }
+        foreach ( $cast as $actor => $role ) {
+            foreach ($role as $item){
+                $casttext = $casttext . "<tr><td><!--<a href=\"" . get_post_permalink($actor)."\">-->" . get_person_name($actor) . "</a> as " . $item . "</td></tr>";
             }
         }
     }
@@ -713,7 +709,7 @@ function tm_show_shortcode() {
     } else {
         foreach ( $crew as $pos => $job ) {
             foreach ($job as $item){
-                $casttext = $casttext . "<tr><td>" . $item . ": <a href=\"" . get_post_permalink($pos)."\">" . get_the_title($pos) . "</td></tr>";
+                $casttext = $casttext . "<tr><td>" . $item . ": <!--<a href=\"" . get_post_permalink($pos)."\">-->" . get_person_name($pos) . "</td></tr>";
             }
         }
     }
