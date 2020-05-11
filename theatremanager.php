@@ -5,7 +5,7 @@
  * @wordpress-plugin
  * Plugin Name: Theatre Manager
  * Description: A plugin to manage theatrical productions, storing infomation about who is involved. Can also be used as an archive
- * Version: 0.7
+ * Version: 1.0
  * Requires at least: 5.4
  * Requires PHP: 7.4
  * Author: John
@@ -19,12 +19,13 @@ if ( ! defined( 'ABSPATH' )) die;
 
 
 //fetch relevant pages
-require_once(dirname(__FILE__) . '/includes/theatre-manager-person-type.php');
-require_once(dirname(__FILE__) . '/includes/theatre-manager-committee-type.php');
-require_once(dirname(__FILE__) . '/includes/theatre-manager-committee-role-type.php');
-require_once(dirname(__FILE__) . '/includes/theatre-manager-show-type.php');
-require_once(dirname(__FILE__) . '/includes/theatre-manager-warning-type.php');
-require_once(dirname(__FILE__) . '/includes/theatre-manager-options.php');
+require_once(dirname(__FILE__) . '/tm-includes/tm-person-type.php'); // - replaced with tm-person, will be removed soon
+require_once(dirname(__FILE__) . '/tm-includes/tm-person.php');
+require_once(dirname(__FILE__) . '/tm-includes/tm-committee-type.php');
+require_once(dirname(__FILE__) . '/tm-includes/tm-committee-role-type.php');
+require_once(dirname(__FILE__) . '/tm-includes/tm-show-type.php');
+require_once(dirname(__FILE__) . '/tm-includes/tm-warning-type.php');
+require_once(dirname(__FILE__) . '/tm-admin/tm-options.php');
 
 //------------------------------------------------------------------------------------------
 /**
@@ -51,6 +52,42 @@ function tm_deactivate() {
     flush_rewrite_rules();
 }
 register_deactivation_hook( __FILE__, 'tm_deactivate' );
+
+/** 
+ * Create Custom Table
+ * @since 1.0
+ */
+function tm_person_create_db(){
+    global $wpdb;
+    $charset_collate = $wpdb->get_charset_collate();
+    require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+
+    $table_name = $wpdb->base_prefix . 'tm_people';
+    $sql = "CREATE TABLE IF NOT EXISTS `$table_name` (
+        id INTEGER NOT NULL AUTO_INCREMENT,
+        name TEXT NOT NULL,
+        bio LONGTEXT NULL,
+        email TEXT NULL,
+        course LONGTEXT NULL,
+        cast LONGTEXT NULL,
+        crew LONGTEXT NULL,
+        committee LONGTEXT NULL,
+        PRIMARY KEY  (id)
+        ) $charset_collate;";
+    dbDelta( $sql );
+}
+register_activation_hook( __FILE__, 'tm_person_create_db');
+
+/**
+ * Remove table on uninstall
+ * @since 1.0
+ */
+function tm_person_remove_db(){
+    global $wpdb;
+    $table_name = $wpdb->base_prefix . 'tm_people';
+    $wpdb->query("DROP TABLE IF EXISTS $table_name");
+}
+register_uninstall_hook(__FILE__, 'tm_person_remove_db');
 
 //------------------------------------------------------------------------------------------
 /**

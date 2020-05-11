@@ -31,7 +31,7 @@ if (isset($options['tm_committees']) && $options['tm_committees'] == 1){
             'labels' => $labels,
             'description'   => 'Contains information about our past committee shows',
             'public'        => true,
-            'menu_position' => 40,
+            'menu_position' => "58",
             'supports'      => array( 'title',),
             'rewrite'       => array('slug' => 'committee'),
             'show_in_rest'  => false, //true => Gutenberg editor, false => old editor

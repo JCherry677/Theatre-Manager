@@ -2,6 +2,7 @@
 /**
  * Custom Type - person
  * @since 0.2
+ * @deprecated deprecated since version 1.0
  */
 
 // If called directly, abort
@@ -10,7 +11,7 @@ if ( ! defined( 'ABSPATH' )) die;
 //create person type
 function tm_person_type(){
     $labels = array(
-        'name'               => __( 'Members', 'post type general name' ),
+        'name'               => __( '(DEPRECIATED) Members', 'post type general name' ),
         'singular_name'      => __( 'Member', 'post type singular name' ),
         'add_new'            => __( 'Add New', 'Member' ),
         'add_new_item'       => __( 'Add New Member' ),
@@ -22,14 +23,14 @@ function tm_person_type(){
         'not_found'          => __( 'No members found' ),
         'not_found_in_trash' => __( 'No members found in the Trash' ), 
         'parent_item_colon'  => '’',
-        'menu_name'          => 'Members',
+        'menu_name'          => '(DEPRECIATED) Members',
     );
 
     $args = array(
         'labels' => $labels,
         'description'   => 'Contains information about members - past and present',
         'public'        => true,
-        'menu_position' => 30,
+        'menu_position' => 999,
         'supports'      => array( 'title', 'editor', 'thumbnail', ),
         'rewrite'       => array('slug' => 'members'),
         'show_in_rest'  => false, //true => Gutenberg editor, false => old editor
@@ -159,7 +160,7 @@ add_action( 'load-post-new.php', 'tm_person_meta_boxes_setup' );
 //HTML representation of the box
 function tm_person_info_box($post){
     wp_nonce_field( basename( __FILE__ ), 'tm_person_info_nonce' );
-    include plugin_dir_path( __FILE__ ) . 'forms/person-info-form.php';
+    include plugin_dir_path( __FILE__ ) . 'forms/person-info-form-old.php';
 }
 
 //saving metadata 

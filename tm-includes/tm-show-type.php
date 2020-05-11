@@ -28,7 +28,7 @@ function tm_show_type(){
         'labels' => $labels,
         'description'   => 'Contains information about past shows',
         'public'        => true,
-        'menu_position' => 30,
+        'menu_position' => "58",
         'supports'      => array( 'title', 'editor', 'comments', 'thumbnail'),
         'rewrite'       => array('slug' => 'shows'),
         'show_in_rest'  => false, //true => Gutenberg editor, false => old editor
