@@ -8,7 +8,7 @@
  * Version: 1.1
  * Requires at least: 5.4
  * Requires PHP: 7.4
- * Author: John
+ * Author: John Cherry
  * License: GPLv2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * text domain: theatre-manager
@@ -19,7 +19,6 @@ if ( ! defined( 'ABSPATH' )) die;
 
 
 //fetch relevant pages
-//require_once(dirname(__FILE__) . '/tm-includes/tm-person-type.php'); // - replaced with tm-person, will be removed soon
 require_once(dirname(__FILE__) . '/tm-admin/tm-options.php');
 require_once(dirname(__FILE__) . '/tm-includes/tm-show-type.php');
 require_once(dirname(__FILE__) . '/tm-includes/tm-warning-type.php');
@@ -35,10 +34,44 @@ require_once(dirname(__FILE__) . '/tm-includes/tm-committee-role-type.php');
 
 //activate plugin
 function tm_activate(){
+    //create person pages
+    $members_page = array(
+        'post_title'    => 'Members',
+        'post_content'  => '[tm-people]',
+        'post_status'   => 'publish',
+        'post_author'   => 1,
+        'post_type'     => 'page'
+    );
+    $member_page = array(
+        'post_title'    => 'Member',
+        'post_content'  => '[tm-person]',
+        'post_status'   => 'publish',
+        'post_author'   => 1,
+        'post_type'     => 'page'
+    );
+    $members_page_id = wp_insert_post( $members_page );
+    $member_page_id = wp_insert_post( $member_page );
+    $options = get_option( 'tm_settings' );
+    $options['members_page'] = $members_page_id;
+    $options['member_page'] = $members_page_id;
+    update_option('tm_settings', $options);
+    // hide new pages from admin interface
+    add_filter( 'parse_query', 'tm_exclude_pages_from_admin' );
     // Clear the permalinks after the post type has been registered.
     flush_rewrite_rules(); 
 }
 register_activation_hook( __FILE__, 'tm_activate');
+
+function tm_exclude_pages_from_admin($query) {
+    $options = get_option( 'tm_settings' );
+    if ( ! is_admin() )
+        return $query;
+    
+    global $pagenow, $post_type;
+   
+    if ( !current_user_can( 'administrator' ) && $pagenow == 'edit.php' && $post_type == 'page' )
+        $query->query_vars['post__not_in'] = array( $options['members_page'], $options['member_page'] );
+}
 
 //deactivate plugin
 function tm_deactivate() {

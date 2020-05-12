@@ -346,21 +346,20 @@ class TM_Person {
         }
         ?>
         <div class="wrap">
-            <h2>Members <a class="add-new-h2" href="<?php echo get_admin_url(get_current_blog_id(), 'admin.php?page=tm_members_edit');?>"><?php _e('Add New', 'theatre-manager')?></a>
+            <h2>Members 
+            <a class="add-new-h2" href="<?php echo get_admin_url(get_current_blog_id(), 'admin.php?page=tm_members_edit');?>"><?php _e('Add New', 'theatre-manager')?></a> 
+            <a class="add-new-h2" href="<?php echo get_site_url()?>/members"><?php _e('View All', 'theatre-manager')?></a>
             </h2>
             <?php echo $message; ?>
             <div id="poststuff">
-                <!--<div id="post-body" class="metabox-holder columns-2">
-                    <div id="post-body-content">
-                        <div class="meta-box-sortables ui-sortable">-->
-                            <form method="post">
-                                <?php
-                                
-                                //add search box
-                                $this->person_obj->search_box("Search", 'search');
-                                //display the table
-                                $this->person_obj->display(); ?>
-                            </form>
+                <form method="post">
+                    <?php
+                    
+                    //add search box
+                    $this->person_obj->search_box("Search", 'search');
+                    //display the table
+                    $this->person_obj->display(); ?>
+                </form>
                 <br class="clear">
             </div>
         </div>
@@ -424,7 +423,6 @@ class TM_Person {
             // combine our default item with request params
             $item = shortcode_atts($default, $_REQUEST);
             $item['course'] = serialize(tm_save_person_info());
-            error_log(print_r($item));
             // validate data, and if all ok save item to database
             $item_valid = tm_person_validate($item);
             if ($item_valid === true) {
@@ -654,17 +652,116 @@ function set_person_data($person_id, $column, $data, $serialized = false){
     error_log($returns);
 }
 
-//add custom archive
-add_action('init', 'tm_rewrite_init');
-function tm_rewrite_init(){
-    add_rewrite_rule(
-        'properties/([0-9]+)/?$',
-        //'index.php?pagename=properties&property_id=$matches[1]',
-        'wp-admin/admin.php?page=tm_members',
-        'top' );
+//add custom archive - two shortcodes
+function tm_people_shortcode($atts){
+    $options = get_option( 'tm_settings' );
+    $editPage = get_post_permalink($options['members_page']);
+    global $wpdb;
+    $table_name = $wpdb->base_prefix . 'tm_people';
+    $results = $wpdb->get_results("SELECT id,name,email,bio FROM " . $table_name . " ORDER BY name ASC", ARRAY_A);
+    $data = "";
+    $count = 0;
+    $data = $data . "<table><tbody><tr>";
+    foreach ( $results as $person => $role ) {
+        if ($count >= 3){
+            $data = $data . "</tr><tr>";
+            $count = 0;
+        }
+        $count += 1;
+        $data = $data . "<td><table><tbody>";
+        $data = $data . "<tr><td><a href='" . get_site_url()."/member/?person=" . $role['id'] ."'>" . $role['name'] . "</a></td></tr>";
+        $bio = $role['bio'];
+        $data = $data . "<tr><td>" . substr($bio, 0, 50) . " ...</td></tr>";
+        $email = $role['email'];
+        if ($email == ""){
+            $data = $data . "<tr><td>Email Unknown</td></tr>";
+        } else {
+            $data = $data . "<tr><td><a href=\"mailto:" . $email . "\">" . $email . "</a></td></tr>";
+        }
+        $data = $data . "</tbody></table></td>";
+    }
+    $data = $data . "</tbody></table>";
+    return $data;
 }
-add_filter( 'query_vars', 'tm_query_vars' );
-function tm_query_vars( $query_vars ){
-    $query_vars[] = 'property_id';
-    return $query_vars;
+add_shortcode('tm-people', 'tm_people_shortcode');
+
+function tm_person_shortcode($atts){
+    global $wpdb;
+    $person_id = $_GET['person'];
+    $results = $wpdb->get_results("SELECT * FROM {$wpdb->base_prefix}tm_people WHERE id = '{$person_id}'", ARRAY_A)[0];
+    $name = $results['name'];
+    $bio = $results['bio'];
+    $info = unserialize($results['course']);
+    $shows = unserialize($results['cast']);
+    $crews = unserialize($results['crew']);
+    $committees = unserialize($results['committee']);
+
+    //basic data
+    $data = "<h1>" . $name . "</h1><p>". $bio . "</p>";
+    $degreetext = "<h2>Courses</h2>";
+    if ($info == ""){
+        $degreetext = $degreetext . "<p> No Known Courses </p>";
+    } else {
+        foreach ( $info as $field ) {
+            $degreetext = $degreetext . "<p>" . $field['course'] . ", Graduating in " . $field['grad'] . "</p>";
+        }
+    }
+
+    //show - cast
+    $casttext = "<h2>Shows</h2><h3>Cast</h3>";
+    if ($shows == ""){
+        $casttext = $casttext . "<p>" . $name ." has not been in the cast of any shows</p>";
+    } else{
+        $casttext = $casttext . "<table><thead><td><h6>Show</h6></td><td><h6>Role(s)</h6></td></thead><tbody>";
+        foreach($shows as $show => $role){
+            $casttext = $casttext . "<tr><td><a href=\"" . get_post_permalink($show)."\">". get_the_title($show) . "</a></td><td><table><tbody>";
+            foreach ($role as $item){
+                $casttext = $casttext . "<tr><td>" . $item . "</td></tr>";
+            }
+            $casttext = $casttext . "</tbody></table></td></tr>";
+        }
+        $casttext = $casttext . "</tbody></table>";
+    }
+
+    //show - crew
+    $crewtext = "<h3>Production Roles</h3>";
+    if ($crews == ""){
+        $crewtext = $crewtext . "<p>" . $name ." has not been on a Production Team of any shows</p>";
+    } else{
+        $crewtext = $crewtext . "<table><thead><td><h6>Show</h6></td><td><h6>Role(s)</h6></td></thead><tbody>";
+        foreach($crews as $show => $role){
+            $crewtext = $crewtext . "<tr><td><a href=\"" . get_post_permalink($show)."\">". get_the_title($show)  . "</a></td><td><table><tbody>";
+            foreach ($role as $item){
+                $crewtext = $crewtext . "<tr><td>" . $item . "</td></tr>";
+            }
+            $crewtext = $crewtext . "</tbody></table></td></tr>";
+        }
+        $crewtext = $crewtext . "</tbody></table>";
+    }
+
+    $options = get_option( 'tm_settings' );
+    if (isset($options['tm_committees']) && $options['tm_committees'] == 1){
+        //committees
+        $committeestext = "<h2>Committees</h2>";
+        if ($committees == ""){
+            $committeestext = $committeestext . "<p>" . $name ." has not been on a committee</p>";
+        } else {
+            $committeestext = $committeestext . "<table><thead><td><h6>Committee Period</h6></td><td><h6>Role</h6></td></thead><tbody>";
+            foreach($committees as $committee => $role){
+                $committeestext = $committeestext . "<tr><td><a href=\"" . get_post_permalink($committee)."\">" . get_the_title($committee) . "</a></td><td><table><tbody>";
+                foreach ($role as $item){
+                    $committeestext = $committeestext . "<tr><td><a href=\"" . get_post_permalink($item)."\">" . get_the_title($item) . "</a></td></tr>";
+                }
+                $committeestext = $committeestext . "</tbody></table></td></tr>";
+            }
+            $committeestext = $committeestext . "</tbody></table>";
+        }
+
+        $data .= $degreetext . $casttext .  $crewtext . $committeestext;
+    }else {
+        $data .= $degreetext . $casttext .  $crewtext;    
+    }
+    //return all
+    return $data;
 }
+add_shortcode('tm-person', 'tm_person_shortcode');

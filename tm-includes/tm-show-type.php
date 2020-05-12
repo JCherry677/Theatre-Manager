@@ -696,7 +696,7 @@ function tm_show_shortcode() {
     } else {
         foreach ( $cast as $actor => $role ) {
             foreach ($role as $item){
-                $casttext = $casttext . "<tr><td><!--<a href=\"" . get_post_permalink($actor)."\">-->" . get_person_name($actor) . "</a> as " . $item . "</td></tr>";
+                $casttext = $casttext . "<tr><td><a href='" . get_site_url(). "/member/?person=" . $actor."'>" . get_person_name($actor) . "</a> as " . $item . "</td></tr>";
             }
         }
     }
@@ -709,7 +709,7 @@ function tm_show_shortcode() {
     } else {
         foreach ( $crew as $pos => $job ) {
             foreach ($job as $item){
-                $casttext = $casttext . "<tr><td>" . $item . ": <!--<a href=\"" . get_post_permalink($pos)."\">-->" . get_person_name($pos) . "</td></tr>";
+                $casttext = $casttext . "<tr><td>" . $item . ": <a href='" . get_site_url(). "/member/?person=" . $pos."'>" . get_person_name($pos) . "</td></tr>";
             }
         }
     }
