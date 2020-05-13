@@ -42,6 +42,13 @@ function tm_settings_init(  ) {
 		'pluginPage', 
 		'tm_pluginPage_section' 
 	);
+	add_settings_field( 
+		'tm_email_option', 
+		__( 'Use Email for Members (For Committee member emails)', 'theatre-manager' ), 
+		'tm_email_render', 
+		'pluginPage', 
+		'tm_pluginPage_section' 
+	);
 	add_settings_section(
 		'tm_pluginPage_section_archive', 
 		__( 'Archive Settings', 'theatre-manager' ), 
@@ -77,6 +84,12 @@ function tm_committee_render(  ) {
 	$options = get_option( 'tm_settings' );
 	?>
 	<input type='checkbox' name='tm_settings[tm_committees]' <?php if (isset($options['tm_committees'])) checked( $options['tm_committees'], 1 ); ?> value='1'>
+	<?php
+}
+function tm_email_render(  ) { 
+	$options = get_option( 'tm_settings' );
+	?>
+	<input type='checkbox' name='tm_settings[tm_person_email]' <?php if (isset($options['tm_person_email'])) checked( $options['tm_person_email'], 1 ); ?> value='1'>
 	<?php
 }
 function tm_settings_section_callback(  ) { 

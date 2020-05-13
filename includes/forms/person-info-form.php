@@ -1,3 +1,10 @@
+<?php
+//if people enabled, do stuff differently
+$options = get_option( 'tm_settings' );
+$people = false;
+if (isset($options['tm_person_email']) && $options['tm_person_email'] == 1){
+    $people = true;
+}?>
 <script type="text/javascript">
     jQuery(document).ready(function( $ ){
         $( '#add-row' ).on('click', function() {
@@ -54,12 +61,13 @@
 </style>
     <div class="th_person_info_row">
         <div class="th_person_info">
-            <h2 class="nomargin">About You</h2>
-            <div class="meta-options th_person_info_field">
-                <label for="tm_person_email">Email Address (Optional)</label>
-                <input type="email" id="tm_person_email" name="tm_person_email" value="<?php echo esc_attr( get_post_meta( get_the_ID(), 'tm_person_email', true ) ); ?>">
-                <p> </p>
-            </div>
+            <?php if($people) {?>
+                <div class="meta-options th_person_info_field">
+                    <label for="tm_person_email" style="width: 250px !important;">Email Address (For Committee Members)</label>
+                    <input type="email" id="tm_person_email" name="tm_person_email" value="<?php echo esc_attr( get_post_meta( get_the_ID(), 'tm_person_email', true ) ); ?>">
+                    <p> </p>
+                </div>
+            <?php } ?>
         </div>
     </div>
     <div class="th_person_info_row">
