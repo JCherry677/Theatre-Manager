@@ -690,7 +690,7 @@ function tm_show_shortcode() {
     if (is_null( $cast ) || empty($cast)){
         $casttext = "This show has no known cast";
     } else {
-        if($person){
+        if($cast){
             foreach ( $cast as $actor => $role ) {
                 foreach ($role as $item){
                     $casttext = $casttext . "<tr><td><a href=\"" . get_post_permalink($actor)."\">" . get_the_title($actor) . "</a> as " . $item . "</td></tr>";
