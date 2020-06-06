@@ -286,6 +286,7 @@ function tm_show_info_save( $post_id, $post ) {
             add_post_meta( $post_id, $field, sanitize_text_field( $_POST[$field] ), true);
         }
     }
+
 }
 
 /**
@@ -1072,4 +1073,41 @@ if (isset($options['tm_archive']) && $options['tm_archive'] == 1){
         }
     }
     add_action( 'admin_notices', 'tm_bulk_move_notice' );
+}
+/**
+ * Update show post date when submitted
+ * @since 0.8.1
+ * Requires using people in shows to be set in setup
+ */
+function update_post_date( $data , $error ) {
+
+	// first check if the post_type is the right one
+	if (array_key_exists('post_type', $_POST) && $_POST['post_type'] === 'theatre_show') {
+		// check if the correct metadata POST variable is available
+		if (array_key_exists('th_show_info_start_date', $_POST)) {
+			$metaData = $_POST['th_show_info_start_date'];
+            // format is 'yyyy-mm-dd hh:mm:ss', that is Wordpress itself
+            $datumPost = $data['post_date'];
+
+            // a bit extended for clearity
+            $dateOne = new DateTime($datumPost);
+            $dateTwo = new DateTime($metaData);
+
+            // we use the DateTime->modify function
+            $dateOne->modify($dateTwo->format('Y-m-d'));
+
+            // We apply a change to post_date and post_date_gmt to the same value
+            $data['post_date'] = $dateOne->format('Y-m-d H:i:s');
+            $data['post_date_gmt'] = $dateOne->format('Y-m-d H:i:s');
+		}
+	}
+
+	// finally we return the $data and Wordpress will take it over from there
+	return $data;
+}
+$options = get_option( 'tm_settings' );
+if (isset($options['tm_people']) && $options['tm_people'] == 1) {
+	// Filters to setup the automatic change of the publish date
+	add_filter( 'wp_insert_post_data', 'update_post_date', 99, 2 );
+	add_filter( 'wp_update_post_data', 'update_post_date', 99, 2 );
 }

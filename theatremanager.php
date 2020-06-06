@@ -5,7 +5,7 @@
  * @wordpress-plugin
  * Plugin Name: Theatre Manager
  * Description: A plugin to manage theatrical productions, storing information about who is involved. Can also be used as an archive
- * Version: 0.8.0
+ * Version: 0.8.1
  * Requires at least: 5.4
  * Requires PHP: 7.2
  * Author: John Cherry
@@ -20,12 +20,12 @@ if ( ! defined( 'ABSPATH' )) die;
 
 
 //fetch relevant pages
-require_once(dirname(__FILE__) . '/includes/theatre-manager-person-type.php');
-require_once(dirname(__FILE__) . '/includes/theatre-manager-committee-type.php');
-require_once(dirname(__FILE__) . '/includes/theatre-manager-committee-role-type.php');
-require_once(dirname(__FILE__) . '/includes/theatre-manager-show-type.php');
-require_once(dirname(__FILE__) . '/includes/theatre-manager-warning-type.php');
-require_once(dirname(__FILE__) . '/includes/theatre-manager-options.php');
+require_once(dirname(__FILE__) . '/tm-includes/theatre-manager-person-type.php');
+require_once(dirname(__FILE__) . '/tm-includes/theatre-manager-committee-type.php');
+require_once(dirname(__FILE__) . '/tm-includes/theatre-manager-committee-role-type.php');
+require_once(dirname(__FILE__) . '/tm-includes/theatre-manager-show-type.php');
+require_once(dirname(__FILE__) . '/tm-includes/theatre-manager-warning-type.php');
+require_once( dirname( __FILE__ ) . '/tm-admin/theatre-manager-options.php' );
 
 //------------------------------------------------------------------------------------------
 /**
@@ -92,7 +92,7 @@ function tm_id_lookup($name, $type){
     while ( $query->have_posts() ) {
         $query->the_post();
         $title = get_the_title();
-        if($title == $name_id){
+        if($title == $name){
             return get_the_ID();
         }
     }
