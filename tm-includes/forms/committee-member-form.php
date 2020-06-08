@@ -95,7 +95,7 @@
                     foreach ( $repeatable_fields as $key => $value ) {
                         foreach ($value as $item){?>
                             <tr>
-                                <td><input type="text" class="widefat th_role_search_class" name="postition[]" value="<?php echo esc_attr(get_the_title($item) . " (" . $item . ")" )?>" /></td>
+                                <td><input type="text" class="widefat th_role_search_class" autocomplete="off" name="postition[]" value="<?php echo esc_attr(get_the_title($item) . " (" . $item . ")" )?>" /></td>
                                 <td><input type="text" class="widefat th_person_search_class" name="member[]" value="<?php echo esc_attr(get_the_title($key) . " (" . $key . ")" )?>" /></td>
                                 <td><a class="button remove-row" href="#">Remove</a></td>
                             </tr>
@@ -105,7 +105,7 @@
 
                 <!-- empty hidden one for jQuery -->
                 <tr class="empty-cast-row screen-reader-text">
-                    <td><input type="text" class="widefat th_role_search_class" name="postition[]" /></td>
+                    <td><input type="text" class="widefat th_role_search_class" autocomplete="off" name="postition[]" /></td>
                     <td><input type="text" class="widefat th_person_search_class" name="member[]" value="" /></td>
                     <td><a class="button remove-row" href="#">Remove</a></td>
                 </tr>

@@ -47,8 +47,8 @@ if (isset($options['tm_people']) && $options['tm_people'] == 1){
                         foreach ( $repeatable_fields as $key => $value ) {
                             foreach ($value as $item){?>
                                 <tr>
-                                    <td><input type="text" class="widefat" name="crew-job[]" value="<?php echo esc_attr( $item ); ?>" /></td>
-                                    <td><input type="text" class="widefat th_person_search_class" name="crew-person[]" value="<?php echo esc_attr(get_the_title($key) . " (" . $key . ")" )?>" /></td>
+                                    <td><input type="text" class="widefat" autocomplete="off" name="crew-job[]" value="<?php echo esc_attr( $item ); ?>" /></td>
+                                    <td><input type="text" class="widefat autocomplete="off" th_person_search_class" name="crew-person[]" value="<?php echo esc_attr(get_the_title($key) . " (" . $key . ")" )?>" /></td>
                                     <td><a class="button remove-row" href="#">Remove</a></td>
                                 </tr>
                             <?php }
@@ -57,8 +57,8 @@ if (isset($options['tm_people']) && $options['tm_people'] == 1){
                         foreach ( $repeatable_fields as $key => $value ) {
                             foreach ($value as $item){?>
                                 <tr>
-                                    <td><input type="text" class="widefat" name="crew-job[]" value="<?php echo esc_attr( $item ); ?>" /></td>
-                                    <td><input type="text" class="widefat" name="crew-person[]" value="<?php echo esc_attr($key)?>" /></td>
+                                    <td><input type="text" class="widefat" name="crew-job[]" autocomplete="off" value="<?php echo esc_attr( $item ); ?>" /></td>
+                                    <td><input type="text" class="widefat" name="crew-person[]" autocomplete="off" value="<?php echo esc_attr($key)?>" /></td>
                                     <td><a class="button remove-row" href="#">Remove</a></td>
                                 </tr>
                             <?php }

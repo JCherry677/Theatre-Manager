@@ -26,7 +26,7 @@ function tm_show_type(){
 
     $args = array(
         'labels' => $labels,
-        'description'   => 'Contains information about past shows',
+        'description'   => 'Have a look at our shows, past and present',
         'public'        => true,
         'menu_position' => 30,
         'supports'      => array( 'title', 'editor', 'comments', 'thumbnail'),
@@ -392,46 +392,35 @@ function tm_show_person_save($post_id, $post){
                 }
             }
         }
-        if ( !empty( $new ) && $new != $old ){
-            update_post_meta( $post_id, 'th_show_person_info_data', $new );
-        } elseif ( empty($new) && $old ) {
-            delete_post_meta( $post_id, 'th_show_person_info_data', $old );
-        }
+	    if ( !empty( $new ) && $new != $old ){
+		    update_post_meta( $post_id, 'th_show_person_info_data', $new );
+	    } elseif ( empty($new) && $old ) {
+		    delete_post_meta( $post_id, 'th_show_person_info_data', $old );
+	    }
+
         
         //save role details in person metadata 
-        foreach ($known as $person){
-            $member_new = array(); //create new array to store new data in
+        foreach ($new as $person => $role){
+            //old data
             $show_roles = get_post_meta($person, 'th_show_roles', true);
-            $member_new[$post_id] = $new[$person];
-            if (!empty($show_roles)){            
-                //go through all current stored data
-                foreach ($show_roles as $show => $role) {
-                    if ( (abs($show-$post_id) < PHP_FLOAT_EPSILON)){
-                        //update if same
-                        $member_new[$show] = $new[$person];
-                    } else {
-                        //copy if not relevant
-                        $member_new[$show] = $role;
-                    }
-                }
+            if (empty($show_roles)) {
+                $show_roles = array();
             }
-            
-            update_post_meta($person, 'th_show_roles', $member_new);
+            $show_roles[$post_id] = $role;
+            update_post_meta($person, 'th_show_roles', $show_roles);
         }
 
         //remove records that no longer appear in data
         foreach ($old as $key => $value){
             if (!(in_array($key, $known))){
-                $member_new = array();
+                $show_new = array();
                 $show_roles = get_post_meta($key, 'th_show_roles', true);
                 foreach ($show_roles as $show => $role) {
-                    if ( (abs($show-$post_id) < PHP_FLOAT_EPSILON)){
-                        //remove by not adding it
-                    } else {
-                        $member_new[$show] = $role;
+                    if((int)$show != $post_id){
+	                    $show_new[$show] = $role;
                     }
                 }
-                update_post_meta($key, 'th_show_roles', $member_new);
+                update_post_meta($key, 'th_show_roles', $show_new);
             }
         }
     } else {
@@ -509,34 +498,23 @@ function tm_show_crew_save($post_id, $post){
                     }
                 }
             }
-        }        
-        if ( empty($new) && $old ){
-            delete_post_meta( $post_id, 'th_show_crew_info_data', $old );
-        } else{
-            update_post_meta( $post_id, 'th_show_crew_info_data', $new );
         }
+	    if ( empty($new) && $old ){
+		    delete_post_meta( $post_id, 'th_show_crew_info_data', $old );
+	    } else{
+		    update_post_meta( $post_id, 'th_show_crew_info_data', $new );
+	    }
 
         //save crew details in person metadata 
-        foreach ($known as $person){
-            $member_new = array(); //create new array to store new data in
+        foreach ($new as $person => $role){
+            //old roads
             $crew_roles = get_post_meta($person, 'th_crew_roles', true);
-            $member_new[$post_id] = $new[$person];
             if (empty($crew_roles)){            
-                $member_new[$post_id] = $new[$person];
-            } else {
-                //go through all current stored data
-                foreach ($crew_roles as $show => $role) {
-                    if ( (abs($show-$post_id) < PHP_FLOAT_EPSILON)){
-                        //update if same
-                        $member_new[$show] = $new[$person];
-                    } else {
-                        //copy if not relevant
-                        $member_new[$show] = $role;
-                    }
-                }
+                $crew_roles = array();
             }
+            $crew_roles[$post_id] = $role;
             
-            update_post_meta($person, 'th_crew_roles', $member_new);
+            update_post_meta($person, 'th_crew_roles', $crew_roles);
         }
 
         //remove records that no longer appear in data
@@ -545,10 +523,8 @@ function tm_show_crew_save($post_id, $post){
                 $member_new = array();
                 $crew_roles = get_post_meta($key, 'th_crew_roles', true);
                 foreach ($crew_roles as $show => $role) {
-                    if ( (abs($show-$post_id) < PHP_FLOAT_EPSILON)){
-                        //remove by not adding it
-                    } else {
-                        $member_new[$show] = $role;
+                    if((int)$show != (int)$post_id){
+	                    $member_new[$show] = $role;
                     }
                 }
                 update_post_meta($key, 'th_crew_roles', $member_new);
