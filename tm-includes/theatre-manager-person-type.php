@@ -32,7 +32,7 @@ function tm_person_type(){
         'menu_position' => 30,
         'supports'      => array( 'title', 'editor', 'thumbnail', ),
         'rewrite'       => array('slug' => 'members'),
-        'show_in_rest'  => false, //true => Gutenberg editor, false => old editor
+        'show_in_rest'  => true, //true => Gutenberg editor, false => old editor
         'has_archive'   => true,
         'menu_icon'     => 'dashicons-admin-users',
     );

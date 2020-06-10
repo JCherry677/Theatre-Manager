@@ -31,7 +31,7 @@ function tm_show_type(){
         'menu_position' => 30,
         'supports'      => array( 'title', 'editor', 'comments', 'thumbnail'),
         'rewrite'       => array('slug' => 'shows'),
-        'show_in_rest'  => false, //true => Gutenberg editor, false => old editor
+        'show_in_rest'  => true, //true => Gutenberg editor, false => old editor
         'has_archive'   => true,
         'menu_icon'     => 'dashicons-tickets-alt',
     );
@@ -98,7 +98,7 @@ function create_show_taxonomies(){
 		'labels'            => $labels,
 		'show_ui'           => true,
         'show_admin_column' => true,
-        'show_in_rest'      => false, //true => Gutenberg editor, false => old editor
+        'show_in_rest'      => true, //true => Gutenberg editor, false => old editor
 		'query_var'         => true,
 		'rewrite'           => array( 'slug' => 'season' ),
     );
@@ -121,7 +121,7 @@ function create_show_taxonomies(){
 		'labels'            => $labels,
 		'show_ui'           => true,
         'show_admin_column' => true,
-        'show_in_rest'      => false, //true => Gutenberg editor, false => old editor
+        'show_in_rest'      => true, //true => Gutenberg editor, false => old editor
 		'query_var'         => true,
 		'rewrite'           => array( 'slug' => 'venue' ),
     );
@@ -144,7 +144,7 @@ function create_show_taxonomies(){
 		'labels'            => $labels,
 		'show_ui'           => true,
         'show_admin_column' => true,
-        'show_in_rest'      => false, //true => Gutenberg editor, false => old editor
+        'show_in_rest'      => true, //true => Gutenberg editor, false => old editor
 		'query_var'         => true,
 		'rewrite'           => array( 'slug' => 'type' ),
     );
