@@ -382,12 +382,11 @@ function tm_show_person_save($post_id, $post){
         for ( $i = 0; $i < $count; $i++ ) {
             if ( $roles[$i] != '' ) {
                 if ( $members[$i] != '' ){
-                    preg_match('#\((.*?)\)#', $members[$i], $match);
-                    if (array_key_exists($match[1], $new)){
-                        array_push($new[$match[1]], $roles[$i]);
+                    if (array_key_exists($members[$i], $new)){
+                        array_push($new[$members[$i]], $roles[$i]);
                     } else {
-                        $new[$match[1]] = array( stripslashes( strip_tags( $roles[$i] )));
-                        array_push($known, $match[1]);
+                        $new[$members[$i]] = array( stripslashes( strip_tags( $roles[$i] )));
+                        array_push($known, $members[$i]);
                     }
                 }
             }
@@ -489,12 +488,11 @@ function tm_show_crew_save($post_id, $post){
         for ( $i = 0; $i < $count; $i++ ) {
             if ( $jobs[$i] != '' ) {
                 if ( $members[$i] != '' ){
-                    preg_match('#\((.*?)\)#', $members[$i], $match);
-                    if (array_key_exists($match[1], $new)){
-                        array_push($new[$match[1]], $jobs[$i]);
+                    if (array_key_exists($members[$i], $new)){
+                        array_push($new[$members[$i]], $jobs[$i]);
                     } else {
-                        $new[$match[1]] = array( stripslashes( strip_tags( $jobs[$i] )));
-                        array_push($known, $match[1]);
+                        $new[$members[$i]] = array( stripslashes( strip_tags( $jobs[$i] )));
+                        array_push($known, $members[$i]);
                     }
                 }
             }

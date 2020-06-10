@@ -102,20 +102,26 @@ function tm_id_lookup($name, $type){
 /**
  * Utility Functions for autocomplete text
  * @since 0.7
+ * @deprecated since 0.8.3, no longer used
  */
-add_action('wp_enqueue_scripts', 'se_wp_enqueue_scripts');
-function se_wp_enqueue_scripts() {
-    wp_enqueue_script('suggest');
-}
+//add_action('wp_enqueue_scripts', 'tm_wp_enqueue_scripts');
+//function tm_wp_enqueue_scripts() {
+	//@removed 0.8.3
+	//wp_enqueue_script('suggest');
+//}
+//@removed 0.8.3
+//add_action('wp_ajax_th_person_lookup', 'th_person_lookup');
+//add_action('wp_ajax_nopriv_th_person_lookup', 'th_person_lookup');
 
-add_action('wp_ajax_th_person_lookup', 'th_person_lookup');
-add_action('wp_ajax_nopriv_th_person_lookup', 'th_person_lookup');
-
+/**
+ * @deprecated since 0.8.3
+ */
 function th_person_lookup() {
+	wp_die();
+	return false;
+
     global $wpdb;
-
     $search = $wpdb->esc_like($_REQUEST['q']);
-
     $query = 'SELECT ID,post_title FROM ' . $wpdb->posts . '
         WHERE post_title LIKE \'' . $search . '%\'
         AND post_type = \'theatre_person\'
@@ -130,6 +136,28 @@ function th_person_lookup() {
     }
     wp_die();
 }
+
+/**
+ * @since 0.8.4
+ * @return array containing all persons in form post_id => post_name
+ */
+function tm_get_names_array(){
+	$names = array();
+	global $wpdb;
+	$search = $wpdb->esc_like($_REQUEST['q']);
+	$query = 'SELECT ID,post_title FROM ' . $wpdb->posts . '
+        WHERE post_type = \'theatre_person\'
+        AND post_status = \'publish\'
+        ORDER BY post_title ASC';
+	$rows = $wpdb->get_results($query);
+	foreach ($rows as $row) {
+		$post_title = $row->post_title;
+		$id = $row->ID;
+		$names[$id] = $post_title;
+	}
+	return $names;
+}
+
 
 //autocomplete role
 add_action('wp_ajax_th_role_lookup', 'th_role_lookup');

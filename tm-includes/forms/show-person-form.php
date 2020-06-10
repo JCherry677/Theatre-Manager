@@ -4,15 +4,13 @@ $options = get_option( 'tm_settings' );
 $people = false;
 if (isset($options['tm_people']) && $options['tm_people'] == 1){
     $people = true;
-}?>
+}
+$names = tm_get_names_array();
+?>
 <script type="text/javascript">
-    var th_ajax_url = '<?php echo admin_url('admin-ajax.php'); ?>';
     jQuery(document).ready(function( $ ){
         $( '#add-row' ).on('click', function() {
-            var row = $( '.empty-cast-row.screen-reader-text' ).clone(true).on('focus', function(){
-            $(this).suggest(th_ajax_url + '?action=th_person_lookup', {minchars:1});
-            return false;
-        });
+            var row = $( '.empty-cast-row.screen-reader-text' ).clone(true)
             row.removeClass( 'empty-cast-row screen-reader-text' );
             row.insertBefore( '#repeatable-fieldset-one tbody>tr:last' );
             return false;
@@ -20,10 +18,6 @@ if (isset($options['tm_people']) && $options['tm_people'] == 1){
 
         $( '.remove-row' ).on('click', function() {
             $(this).parents('tr').remove();
-            return false;
-        });
-        $('.th_person_search_class').on('focus', function(){
-            $(this).suggest(th_ajax_url + '?action=th_person_lookup', {minchars:1});
             return false;
         });
     });
@@ -80,9 +74,7 @@ if (isset($options['tm_people']) && $options['tm_people'] == 1){
 <div class="th_show_person_info">
     <div class="th_show_person_info_field">
         <?php if($people){?>
-            <p style="font-weight: bold;">Members must be added first before adding them to a show!</p>
-            <p>Member names should be added to the Actors box in the format <code>name (id)</code></p>
-            <p>Enter the member's first name and then use the dropdown to ensure this format is correct</p>
+            <p style="font-weight: bold;">Members must be added to the members tab before adding them to a show!</p>
         <?php }?>
         <table id="repeatable-fieldset-one" width="100%">
             <thead>
@@ -101,12 +93,30 @@ if (isset($options['tm_people']) && $options['tm_people'] == 1){
                             foreach ($value as $item){?>
                                 <tr>
                                     <td><input type="text" autocomplete="off" class="widefat" name="role[]" value="<?php echo esc_attr( $item ); ?>" /></td>
-                                    <td><input type="text" autocomplete="off" class="widefat th_person_search_class" name="actor[]" value="<?php echo esc_attr(get_the_title($key) . " (" . $key . ")" )?>" /></td>
+                                    <td><select class="widefat tm-searchable" name="actor[]">
+                                            <?php foreach ($names as $id => $name){
+
+                                                echo '<option value="' . $id . '"';
+                                                if ($id == $key) echo "selected";
+                                                echo '>' . $name .'</option>';
+                                            }?>
+                                        </select> </td>
                                     <td><a class="button remove-row" href="#">Remove</a></td>
                                 </tr>
                                 <?php
                             }
-                        } 
+                        }?>
+                        <!-- empty hidden one for jQuery -->
+                        <tr class="empty-cast-row screen-reader-text">
+                            <td><input type="text" class="widefat" name="role[]" /></td>
+                            <td><select class="widefat tm-searchable" name="actor[]">
+			                        <?php foreach ($names as $id => $name){
+
+				                        echo '<option value="' . $id . '">' . $name .'</option>';
+			                        }?>
+                                </select> </td>
+                            <td><a class="button remove-row" href="#">Remove</a></td>
+                        </tr> <?php
                     } else {
                         foreach ($repeatable_fields as $key => $value) {
                             foreach ($value as $item){?>
@@ -117,16 +127,16 @@ if (isset($options['tm_people']) && $options['tm_people'] == 1){
                                 </tr>
                                 <?php
                             }
-                        } 
+                        }?>
+                    <!-- empty hidden one for jQuery -->
+                    <tr class="empty-cast-row screen-reader-text">
+                        <td><input type="text" class="widefat" name="role[]" /></td>
+                        <td><input type="text" class="widefat" name="actor[]" value="" /></td>
+                        <td><a class="button remove-row" href="#">Remove</a></td>
+                    </tr> <?php
                     }
                 } ?>
 
-                <!-- empty hidden one for jQuery -->
-                <tr class="empty-cast-row screen-reader-text">
-                    <td><input type="text" class="widefat" name="role[]" /></td>
-                    <td><input type="text" class="widefat <?php if($people){echo ('th_person_search_class');}?>" name="actor[]" value="" /></td>
-                    <td><a class="button remove-row" href="#">Remove</a></td>
-                </tr>
             </tbody>
         </table>
 
