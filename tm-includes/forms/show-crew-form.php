@@ -54,18 +54,7 @@ $names = tm_get_names_array();
                                     <td><a class="button remove-row" href="#">Remove</a></td>
                                 </tr>
                             <?php }
-                        }?>
-                        <!-- empty hidden one for jQuery -->
-                        <tr class="empty-cast-row screen-reader-text">
-                            <td><input type="text" class="widefat" name="role[]" /></td>
-                            <td><select class="widefat tm-searchable" name="crew-person[]">
-				                    <?php foreach ($names as $id => $name){
-
-					                    echo '<option value="' . $id . '">' . $name .'</option>';
-				                    }?>
-                                </select> </td>
-                            <td><a class="button remove-row" href="#">Remove</a></td>
-                        </tr> <?php
+                        }
                     } else {
                         foreach ( $repeatable_fields as $key => $value ) {
                             foreach ($value as $item){?>
@@ -75,16 +64,29 @@ $names = tm_get_names_array();
                                     <td><a class="button remove-row" href="#">Remove</a></td>
                                 </tr>
                             <?php }
-                        }?>
-                        <!-- empty hidden one for jQuery -->
-                        <tr class="empty-crew-row screen-reader-text">
-                            <td><input type="text" class="widefat" name="crew-job[]" /></td>
-                            <td><input type="text" class="widefat" name="crew-person[]" value="" /></td>
-                            <td><a class="button remove-row" href="#">Remove</a></td>
-                        </tr> <?php
+                        }
                     }
                 }
-                ?>
+                if ($people) { ?>
+                    <!-- empty hidden one for jQuery -->
+                    <tr class="empty-cast-row screen-reader-text">
+                        <td><input type="text" class="widefat" name="role[]" /></td>
+                        <td><select class="widefat tm-searchable" name="crew-person[]">
+				                <?php foreach ($names as $id => $name){
+
+					                echo '<option value="' . $id . '">' . $name .'</option>';
+				                }?>
+                            </select> </td>
+                        <td><a class="button remove-row" href="#">Remove</a></td>
+                    </tr>
+                <?php } else { ?>
+                    <!-- empty hidden one for jQuery -->
+                    <tr class="empty-crew-row screen-reader-text">
+                        <td><input type="text" class="widefat" name="crew-job[]" /></td>
+                        <td><input type="text" class="widefat" name="crew-person[]" value="" /></td>
+                        <td><a class="button remove-row" href="#">Remove</a></td>
+                    </tr>
+                <?php } ?>
             </tbody>
         </table>
 
