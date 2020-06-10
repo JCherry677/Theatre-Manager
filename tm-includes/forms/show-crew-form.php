@@ -10,7 +10,7 @@ $names = tm_get_names_array();
 <script type="text/javascript">
     jQuery(document).ready(function( $ ){
         $( '#add-crew-row' ).on('click', function() {
-            var row = $( '.empty-crew-row.screen-reader-text' ).clone(true)
+            var row = $( '.empty-crew-row' ).clone(true);
             row.removeClass( 'empty-crew-row screen-reader-text' );
             row.insertBefore( '#repeatable-fieldset-two tbody>tr:last' );
             return false;
@@ -47,7 +47,7 @@ $names = tm_get_names_array();
                                     <td><select class="widefat tm-searchable" name="crew-person[]">
 			                                <?php foreach ($names as $id => $name){
 				                                echo '<option value="' . $id . '"';
-				                                if ($id == $key) echo "selected";
+				                                if ($id == $key) echo " selected";
 				                                echo '>' . $name .'</option>';
 			                                }?>
                                         </select> </td>
@@ -66,27 +66,23 @@ $names = tm_get_names_array();
                             <?php }
                         }
                     }
-                }
-                if ($people) { ?>
-                    <!-- empty hidden one for jQuery -->
-                    <tr class="empty-cast-row screen-reader-text">
-                        <td><input type="text" class="widefat" name="role[]" /></td>
-                        <td><select class="widefat tm-searchable" name="crew-person[]">
-				                <?php foreach ($names as $id => $name){
+                }?>
 
-					                echo '<option value="' . $id . '">' . $name .'</option>';
-				                }?>
-                            </select> </td>
-                        <td><a class="button remove-row" href="#">Remove</a></td>
-                    </tr>
-                <?php } else { ?>
                     <!-- empty hidden one for jQuery -->
                     <tr class="empty-crew-row screen-reader-text">
                         <td><input type="text" class="widefat" name="crew-job[]" /></td>
-                        <td><input type="text" class="widefat" name="crew-person[]" value="" /></td>
+                        <?php if ($people) { ?>
+                            <td><select class="widefat tm-searchable" name="crew-person[]">
+                                    <?php foreach ($names as $id => $name){
+
+                                        echo '<option value="' . $id . '">' . $name .'</option>';
+                                    }?>
+                                </select> </td>
+                        <?php } else { ?>
+                            <td><input type="text" class="widefat" name="crew-person[]" value="" /></td>
+                        <?php } ?>
                         <td><a class="button remove-row" href="#">Remove</a></td>
                     </tr>
-                <?php } ?>
             </tbody>
         </table>
 
