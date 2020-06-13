@@ -99,15 +99,28 @@ if (isset($options['tm_committees']) && $options['tm_committees'] == 1){
          * @since 0.5
          */
         function tm_committee_role_shortcode() {
+	        $options = get_option( 'tm_settings' );
+	        $use_people = false;
+	        if (isset($options['tm_committee_people']) && $options['tm_committee_people'] == 1){
+		        $use_people = true;
+	        }
             $people = get_post_meta(get_the_ID(), 'th_committee_role_data', true);
             //basic data
             $committeestext = "<h3>Role History</h3>";
-            $committeestext = $committeestext . "<table><thead><td><h6>Committee Year</h6></td><td><h6>Member</h6></td></thead><tbody>";
+            $committeestext .= "<table><thead><td><h6>Committee Year</h6></td><td><h6>Member</h6></td></thead><tbody>";
             foreach ( $people as $year => $person ) {
-                $committeestext = $committeestext . "<tr><td><a href=\"" . get_post_permalink($year)."\">" . get_the_title($year) . "</a></td>";
-                $committeestext = $committeestext . "<td><a href=\"" . get_post_permalink($person)."\">" . get_the_title($person) . "</a></td></tr>";
+                $committeestext .= "<tr><td><a href=\"" . get_post_permalink($year)."\">" . get_the_title($year) . "</a></td>";
+                if ( $use_people ) {
+                	$committeestext .= "<td><table>";
+	                foreach ( $person as $item ) {
+		                $committeestext .= "<tr></tr><td><a href=\"" . get_post_permalink( $item ) . "\">" . get_the_title( $item ) . "</a></td></tr>";
+	                }
+	                $committeestext .= "</table></td></tr>";
+                } else {
+	                $committeestext .= "<td>" . get_the_title( $person ) . "</a></td></tr>";
+                }
             }
-            $committeestext = $committeestext . "</tbody></table>";
+            $committeestext .= "</tbody></table>";
             //return all
             return $committeestext;
         }

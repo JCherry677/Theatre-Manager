@@ -11,6 +11,11 @@ if (isset($options['tm_committees']) && $options['tm_committees'] == 1){
      * @since 0.4
      */
     function tm_committee_type(){
+	    $options = get_option( 'tm_settings' );
+	    $committee_block = false;
+	    if (isset($options['tm_block_committee']) && $options['tm_block_committee'] == 1) {
+		    $committee_block = true;
+	    }
         $labels = array(
             'name'               => __( 'Past Committees', 'post type general name' ),
             'singular_name'      => __( 'Committee', 'post type singular name' ),
@@ -32,9 +37,9 @@ if (isset($options['tm_committees']) && $options['tm_committees'] == 1){
             'description'   => 'Contains information about our past committee shows',
             'public'        => true,
             'menu_position' => 40,
-            'supports'      => array( 'title',),
+            'supports'      => array( 'title', 'editor',),
             'rewrite'       => array('slug' => 'committee'),
-            'show_in_rest'  => false, //true => Gutenberg editor, false => old editor
+            'show_in_rest'  => $committee_block, //true => Block editor, false => old editor
             'has_archive'   => true,
             'menu_icon'     => 'dashicons-groups',
         );
@@ -140,24 +145,28 @@ if (isset($options['tm_committees']) && $options['tm_committees'] == 1){
         $old = get_post_meta($post_id, 'th_committee_member_data', true);
         $new = array();
         $known_mem = array();
+        $position = array();
 
         $members = $_POST['member'];
         $positions = $_POST['postition'];
 
         $count = count( $members );
 
-        for ( $i = 0; $i < $count; $i++ ) {
+        for ( $i = 0; $i < $count - 1; $i++ ) { //$count - 1 because the hidden box will always count as not empty
             if ( $positions[$i] != '' ) {
-            	//get id - (in brackets)
-                preg_match('#\((.*?)\)#', $positions[$i], $position_id);
                 if ( $members[$i] != '' ){
-                    preg_match('#\((.*?)\)#', $members[$i], $member_id);
-                    if (array_key_exists($member_id[1], $new)){
-                        array_push($new[$member_id[1]], $position_id[1]);
+                    if (array_key_exists($members[$i], $new)){
+                        array_push($new[$members[$i]], $positions[$i]);
                     } else {
-                        $new[$member_id[1]] = array( stripslashes( strip_tags( $position_id[1] )));
-                        array_push($known_mem, $member_id[1]);
+                        $new[$members[$i]] = array( stripslashes( strip_tags( $positions[$i] )));
+
                     }
+	                array_push($known_mem, $members[$i]);
+	                if (array_key_exists($positions[$i], $position)){
+		                array_push($position[$positions[$i]], $members[$i]);
+	                } else {
+		                $position[$positions[$i]] = array( stripslashes( strip_tags( $members[$i] )));
+	                }
                 }
             }
         }
@@ -165,26 +174,31 @@ if (isset($options['tm_committees']) && $options['tm_committees'] == 1){
 
         //save committee details in person metadata
         foreach ($new as $person => $role){
-            //get old data
-            $committee_roles = get_post_meta($person, 'th_committee_roles', true);
-            //add new data
-            if (empty($committee_roles)){
-	            $committee_roles = array();
-            }
-	        $committee_roles[$post_id] = $role;
-            //save
-            update_post_meta($person, 'th_committee_roles', $committee_roles);
-
-            //now check the role's data and update it
-	        foreach ( $role as $item ) {
-		        $old_roles = get_post_meta($item, 'th_committee_role_data', true);
-		        if (empty($old_roles)){
-			        $old_roles = array();
+        	//check if people are used
+	        $options = get_option( 'tm_settings' );
+	        if (isset($options['tm_committee_people']) && $options['tm_committee_people'] == 1) {
+		        //get old data
+		        $committee_roles = get_post_meta( $person, 'th_committee_roles', true );
+		        //add new data
+		        if ( empty( $committee_roles ) ) {
+			        $committee_roles = array();
 		        }
-		        $old_roles[$post_id] = $person;
-		        update_post_meta($item, 'th_committee_role_data', $old_roles);
+		        $committee_roles[ $post_id ] = $role;
+		        //save
+		        update_post_meta( $person, 'th_committee_roles', $committee_roles );
 	        }
         }
+	    //update the role's data
+	    foreach ($position as $pos => $per){
+	    	error_log($pos);
+	    	error_log( print_r($per, true));
+		    $old_roles = get_post_meta($pos, 'th_committee_role_data', true);
+		    if (empty($old_roles)){
+			    $old_roles = array();
+		    }
+		    $old_roles[$post_id] = $per;
+		    update_post_meta($pos, 'th_committee_role_data', $old_roles);
+	    }
         
         //remove records that no longer appear in data
         foreach ($old as $key => $value){
@@ -200,6 +214,7 @@ if (isset($options['tm_committees']) && $options['tm_committees'] == 1){
                 update_post_meta($key, 'th_committee_roles', $member_new);
 
                 //update role's data
+				/**
 	            foreach ($value as $item) {
 		            $role_new = array();
 		            $old_roles = get_post_meta( $item, 'th_committee_role_data', true );
@@ -209,7 +224,7 @@ if (isset($options['tm_committees']) && $options['tm_committees'] == 1){
 			            }
 		            }
 		            update_post_meta( $item, 'th_committee_role_data', $role_new );
-	            }
+	            }*/
             }
         }
     }
@@ -223,17 +238,26 @@ if (isset($options['tm_committees']) && $options['tm_committees'] == 1){
      * @since 0.5
      */
     function tm_committee_shortcode() {
+	    $options = get_option( 'tm_settings' );
+	    $use_people = false;
+	    if (isset($options['tm_committee_people']) && $options['tm_committee_people'] == 1){
+		    $use_people = true;
+	    }
         $people = get_post_meta(get_the_ID(), 'th_committee_member_data', true);
 
         //basic data
         $committeestext = "<h3>Members</h3>";
         $committeestext = $committeestext . "<table><thead><td><h6>Role</h6></td><td><h6>Member</h6></td></thead><tbody>";
         foreach ( $people as $person => $role ) {
-            $committeestext = $committeestext . "<tr><td><table><tbody>";
+            $committeestext .= "<tr><td><table><tbody>";
             foreach ($role as $item){
-                $committeestext = $committeestext . "<tr><td><a href=\"" . get_post_permalink($item)."\">" . get_the_title($item, 'theatre_role') . "</a></td></tr>";
+                $committeestext .= "<tr><td><a href=\"" . get_post_permalink($item)."\">" . get_the_title($item, 'theatre_role') . "</a></td></tr>";
             }
-            $committeestext = $committeestext . "</tbody></table></td><td><a href=\"" . get_post_permalink($person)."\">" . get_the_title($person) . "</a></td></tr>";
+            if ($use_people) {
+	            $committeestext .= "</tbody></table></td><td><a href=\"" . get_post_permalink( $person ) . "\">" . get_the_title( $person ) . "</a></td></tr>";
+            } else {
+	            $committeestext .= "</tbody></table></td><td>" . get_the_title( $person ) . "</td></tr>";
+            }
         }
         $committeestext = $committeestext . "</tbody></table>";
         //return all

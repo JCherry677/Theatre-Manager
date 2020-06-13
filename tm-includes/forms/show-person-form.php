@@ -121,12 +121,11 @@ $names = tm_get_names_array();
                 }?>
 
                     <!-- empty hidden one for jQuery -->
-                    <tr id="empty-cast-row screen-reader-text">
+                    <tr class="empty-cast-row screen-reader-text">
                         <td><input type="text" class="widefat" name="role[]" /></td>
                         <?php if ($people) { ?>
                             <td><select class="widefat tm-searchable" name="actor[]">
                                     <?php foreach ($names as $id => $name){
-
                                         echo '<option value="' . $id . '">' . $name .'</option>';
                                     }?>
                             </select> </td>

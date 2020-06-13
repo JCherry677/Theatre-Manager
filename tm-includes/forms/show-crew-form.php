@@ -44,13 +44,15 @@ $names = tm_get_names_array();
                             foreach ($value as $item){?>
                                 <tr>
                                     <td><input type="text" class="widefat" autocomplete="off" name="crew-job[]" value="<?php echo esc_attr( $item ); ?>" /></td>
-                                    <td><select class="widefat tm-searchable" name="crew-person[]">
+                                    <td>
+                                        <select class="widefat tm-searchable" name="crew-person[]">
 			                                <?php foreach ($names as $id => $name){
 				                                echo '<option value="' . $id . '"';
 				                                if ($id == $key) echo " selected";
 				                                echo '>' . $name .'</option>';
 			                                }?>
-                                        </select> </td>
+                                        </select>
+                                    </td>
                                     <td><a class="button remove-row" href="#">Remove</a></td>
                                 </tr>
                             <?php }
@@ -72,12 +74,13 @@ $names = tm_get_names_array();
                     <tr class="empty-crew-row screen-reader-text">
                         <td><input type="text" class="widefat" name="crew-job[]" /></td>
                         <?php if ($people) { ?>
-                            <td><select class="widefat tm-searchable" name="crew-person[]">
+                            <td>
+                                <select class="widefat tm-searchable" name="crew-person[]">
                                     <?php foreach ($names as $id => $name){
-
                                         echo '<option value="' . $id . '">' . $name .'</option>';
                                     }?>
-                                </select> </td>
+                                </select>
+                            </td>
                         <?php } else { ?>
                             <td><input type="text" class="widefat" name="crew-person[]" value="" /></td>
                         <?php } ?>

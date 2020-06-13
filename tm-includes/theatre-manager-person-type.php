@@ -9,6 +9,11 @@ if ( ! defined( 'ABSPATH' )) die;
 
 //create person type
 function tm_person_type(){
+	$options = get_option( 'tm_settings' );
+	$person_block = false;
+	if (isset($options['tm_block_person']) && $options['tm_block_person'] == 1) {
+		$person_block = true;
+	}
     $labels = array(
         'name'               => __( 'Members', 'post type general name' ),
         'singular_name'      => __( 'Member', 'post type singular name' ),
@@ -32,7 +37,7 @@ function tm_person_type(){
         'menu_position' => 30,
         'supports'      => array( 'title', 'editor', 'thumbnail', ),
         'rewrite'       => array('slug' => 'members'),
-        'show_in_rest'  => true, //true => Gutenberg editor, false => old editor
+        'show_in_rest'  => $person_block, //true => Gutenberg editor, false => old editor
         'has_archive'   => true,
         'menu_icon'     => 'dashicons-admin-users',
     );

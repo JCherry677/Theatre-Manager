@@ -8,6 +8,11 @@
 if ( ! defined( 'ABSPATH' )) die;
 //create show type
 function tm_show_type(){
+	$options = get_option( 'tm_settings' );
+	$show_block = false;
+	if (isset($options['tm_block_show']) && $options['tm_block_show'] == 1) {
+		$show_block = true;
+	}
     $labels = array(
         'name'               => __( 'Shows', 'post type general name' ),
         'singular_name'      => __( 'Show', 'post type singular name' ),
@@ -31,7 +36,7 @@ function tm_show_type(){
         'menu_position' => 30,
         'supports'      => array( 'title', 'editor', 'comments', 'thumbnail'),
         'rewrite'       => array('slug' => 'shows'),
-        'show_in_rest'  => true, //true => Gutenberg editor, false => old editor
+        'show_in_rest'  => $show_block, //true => Gutenberg editor, false => old editor
         'has_archive'   => true,
         'menu_icon'     => 'dashicons-tickets-alt',
     );
@@ -505,7 +510,7 @@ function tm_show_crew_save($post_id, $post){
 
         //save crew details in person metadata 
         foreach ($new as $person => $role){
-            //old roads
+            //old roles
             $crew_roles = get_post_meta($person, 'th_crew_roles', true);
             if (empty($crew_roles)){            
                 $crew_roles = array();
