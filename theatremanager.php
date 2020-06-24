@@ -179,6 +179,9 @@ function th_person_lookup() {
 add_action('wp_ajax_th_role_lookup', 'th_role_lookup');
 add_action('wp_ajax_nopriv_th_role_lookup', 'th_role_lookup');
 
+/**
+ * @deprecated since 0.9.0
+ */
 function th_role_lookup() {
     global $wpdb;
 
