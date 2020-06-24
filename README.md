@@ -18,14 +18,14 @@ Please see the [Wiki](https://github.com/JCherry677/Theatre-Manager/wiki) for mo
 ## Contributing
 Please read CONTRIBUTING.md for details on our code of conduct, and the process for submitting pull requests to us.
 
-##Versioning
+## Versioning
   We use [SemVer](https://semver.org/) (ish) for versioning. For the versions available, see the [tags on this repository.](https://github.com/JCherry677/Theatre-Manager/tags)
   
-##Authors
+## Authors
 - John Cherry - Initial development
 - Nathan Billis - Testing
 
 See also the list of [contributors](https://github.com/JCherry677/Theatre-Manager/graphs/contributors) who participated in this project.
 
-##License
+## License
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
