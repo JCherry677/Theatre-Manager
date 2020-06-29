@@ -17,9 +17,6 @@ Please see the [Wiki](https://github.com/JCherry677/Theatre-Manager/wiki) for mo
 
 ## Contributing
 Please read CONTRIBUTING.md for details on our code of conduct, and the process for submitting pull requests to us.
-
-## Versioning
-  We use [SemVer](https://semver.org/) (ish) for versioning. For the versions available, see the [tags on this repository.](https://github.com/JCherry677/Theatre-Manager/tags)
   
 ## Authors
 - John Cherry - Initial development
