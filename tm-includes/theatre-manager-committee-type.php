@@ -148,7 +148,7 @@ if (isset($options['tm_committees']) && $options['tm_committees'] == 1){
         $position = array();
 
         $members = $_POST['member'];
-        $positions = $_POST['postition'];
+        $positions = $_POST['position'];
 
         $count = count( $members );
 
@@ -174,19 +174,15 @@ if (isset($options['tm_committees']) && $options['tm_committees'] == 1){
 
         //save committee details in person metadata
         foreach ($new as $person => $role){
-        	//check if people are used
-	        $options = get_option( 'tm_settings' );
-	        if (isset($options['tm_committee_people']) && $options['tm_committee_people'] == 1) {
-		        //get old data
-		        $committee_roles = get_post_meta( $person, 'th_committee_roles', true );
-		        //add new data
-		        if ( empty( $committee_roles ) ) {
-			        $committee_roles = array();
-		        }
-		        $committee_roles[ $post_id ] = $role;
-		        //save
-		        update_post_meta( $person, 'th_committee_roles', $committee_roles );
+	        //get old data
+	        $committee_roles = get_post_meta( $person, 'th_committee_roles', true );
+	        //add new data
+	        if ( empty( $committee_roles ) ) {
+		        $committee_roles = array();
 	        }
+	        $committee_roles[ $post_id ] = $role;
+	        //save
+	        update_post_meta( $person, 'th_committee_roles', $committee_roles );
         }
 	    //update the role's data
 	    foreach ($position as $pos => $per){
@@ -238,11 +234,6 @@ if (isset($options['tm_committees']) && $options['tm_committees'] == 1){
      * @since 0.5
      */
     function tm_committee_shortcode() {
-	    $options = get_option( 'tm_settings' );
-	    $use_people = false;
-	    if (isset($options['tm_committee_people']) && $options['tm_committee_people'] == 1){
-		    $use_people = true;
-	    }
         $people = get_post_meta(get_the_ID(), 'th_committee_member_data', true);
 
         //basic data
@@ -253,11 +244,7 @@ if (isset($options['tm_committees']) && $options['tm_committees'] == 1){
             foreach ($role as $item){
                 $committeestext .= "<tr><td><a href=\"" . get_post_permalink($item)."\">" . get_the_title($item, 'theatre_role') . "</a></td></tr>";
             }
-            if ($use_people) {
-	            $committeestext .= "</tbody></table></td><td><a href=\"" . get_post_permalink( $person ) . "\">" . get_the_title( $person ) . "</a></td></tr>";
-            } else {
-	            $committeestext .= "</tbody></table></td><td>" . get_the_title( $person ) . "</td></tr>";
-            }
+            $committeestext .= "</tbody></table></td><td><a href=\"" . get_post_permalink( $person ) . "\">" . get_the_title( $person ) . "</a></td></tr>";
         }
         $committeestext = $committeestext . "</tbody></table>";
         //return all
@@ -265,6 +252,12 @@ if (isset($options['tm_committees']) && $options['tm_committees'] == 1){
     }
     add_shortcode( 'committee_data', 'tm_committee_shortcode' );
 
+	/**
+	 * This code is horrible, and should definitely not exist.
+	 * If you have found it in the future, I'm sorry.
+	 * If you want to tackle it and actually make a nice shortcode, please let me know how you get on!
+	 * @param $atts
+	 */
     function tm_committee_nice_shortcode($atts) {
         $vars = shortcode_atts( array(
             'committee_id' => '0'
@@ -272,7 +265,11 @@ if (isset($options['tm_committees']) && $options['tm_committees'] == 1){
         $people = get_post_meta($vars['committee_id'], 'th_committee_member_data', true);
 
         $count = 0;
-        $committeestext = "<table><tbody><tr>";
+        /* The ugly bit.
+        This creates two tables, one of width 5 people one width 2 people, which is then shown depending on page size
+        eww
+        */
+        $committeestext = "<style> .is-mobile {display: none;}@media (max-width: 480px) {.is-default {display: none;}.is-mobile {display: block;}}</style><div class='is-default'><table><tbody><tr>";
         foreach ( $people as $person => $role ) {
             if ($count >= 5){
                 $committeestext .= "</tr><tr>";
@@ -293,7 +290,31 @@ if (isset($options['tm_committees']) && $options['tm_committees'] == 1){
             }
             $committeestext .= "</tbody></table></td>";
         }
-        $committeestext .= "</tbody></table>";
+        $committeestext .= "</tbody></table></div><div class='is-mobile'><table><tbody><tr>";
+
+        //now make the table for mobile size
+	    $count = 0;
+	    foreach ( $people as $person => $role ) {
+		    if ($count >= 2){
+			    $committeestext .= "</tr><tr>";
+			    $count = 0;
+		    }
+		    $count += 1;
+		    $committeestext .= "<td><table><tbody>";
+		    $committeestext .= "<tr><td>" . get_the_post_thumbnail($person) . "</td></tr>";
+		    $committeestext .= "<tr><td><a href=\"" . get_post_permalink($person)."\">" . get_the_title($person) . "</a></td></tr>";
+		    foreach ($role as $item){
+			    $committeestext .= "<tr><td><a href=\"" . get_post_permalink($item)."\">" . get_the_title($item) . "</a></td></tr>";
+		    }
+		    $email = get_post_meta($person, 'tm_person_email', true);
+		    if ($email == ""){
+			    $committeestext .= "<tr><td>Email Unknown</td></tr>";
+		    } else {
+			    $committeestext .= "<tr><td><a href=\"mailto:" . $email . "\">" . $email . "</a></td></tr>";
+		    }
+		    $committeestext .= "</tbody></table></td>";
+	    }
+	    $committeestext .= "</tbody></table></div>";
         //return all
         return $committeestext;
     }

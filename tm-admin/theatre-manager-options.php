@@ -4,6 +4,9 @@
  * Options Page
  * @since 0.7
  */
+/*
+ * 0.9.1 removed tm_committee_people as code was wrong elsewhere
+ */
 add_action( 'admin_menu', 'tm_add_admin_menu' );
 add_action( 'admin_init', 'tm_settings_init' );
 
@@ -48,13 +51,6 @@ function tm_settings_init(  ) {
 		'tm_committee_option',
 		__( 'Use Committees', 'theatre-manager' ),
 		'tm_committee_render',
-		'pluginPage',
-		'tm_committee_section'
-	);
-	add_settings_field(
-		'tm_committee_members',
-		__( 'Use Members in Committees', 'theatre-manager' ),
-		'tm_committee_people_render',
 		'pluginPage',
 		'tm_committee_section'
 	);
@@ -137,12 +133,6 @@ function tm_committee_render(  ) {
 	<input type='checkbox' name='tm_settings[tm_committees]' <?php if (isset($options['tm_committees'])) checked( $options['tm_committees'], 1 ); ?> value='1'>
 	<?php
 }
-function tm_committee_people_render(  ) {
-	$options = get_option( 'tm_settings' );
-	?>
-    <input type='checkbox' name='tm_settings[tm_committee_people]' <?php if (isset($options['tm_committee_people'])) checked( $options['tm_committee_people'], 1 ); ?> value='1'>
-	<?php
-}
 function tm_email_render(  ) { 
 	$options = get_option( 'tm_settings' );
 	?>
@@ -192,7 +182,12 @@ function tm_committee_section_callback(  ) {
 }
 function tm_archive_section_callback(  ) { 
 	echo __( '<p>In a multisite setup, this allows you to export shows to a second "archive" site</p>', 'theatre-manager' );
-	echo __( '<p>This should be enabled on the main site and NOT the archive site</p>', 'theatre-manager' );
+
+	if (is_multisite()){
+		echo __( '<p>This should be enabled on the main site and NOT the archive site</p>', 'theatre-manager' );
+	} else {
+		echo __( '<p>Your wordpress installation is not multisite-ready, and so cannot use this feature.</p>', 'theatre-manager' );
+	}
 }
 function tm_block_section_callback(  ) {
 	echo __( '<p>Use the block editor for the plugin\'s post types</p>', 'theatre-manager' );

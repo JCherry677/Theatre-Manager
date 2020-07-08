@@ -7,6 +7,7 @@ if (isset($options['tm_committee_people']) && $options['tm_committee_people'] ==
 }
 $names = tm_get_names_array();
 $roles = tm_get_roles_array();
+$options = get_option( 'tm_settings' );
 ?>
 <script type="text/javascript">
     var th_ajax_url = '<?php echo admin_url('admin-ajax.php'); ?>';
@@ -68,7 +69,7 @@ $roles = tm_get_roles_array();
 </style>
 <div class="th_show_person_info">
     <div class="th_show_person_info_field">
-        <p style="font-weight: bold;">Members and Roles must be added first before adding them to a show!</p>
+        <p style="font-weight: bold;"><?php if (isset($options['tm_committee_people']) && $options['tm_committee_people'] == 1) { ?>Members and <?php } ?>Roles must be added first before adding them to a show!</p>
         <table id="repeatable-fieldset-one" width="100%">
             <thead>
                 <tr>
@@ -85,7 +86,7 @@ $roles = tm_get_roles_array();
                         foreach ($value as $item){?>
                             <tr>
                                 <td>
-                                    <select class="widefat tm-searchable" name="postition[]">
+                                    <select class="widefat tm-searchable" name="position[]">
                                         <?php foreach ($roles as $id => $name){
                                             echo '<option value="' . $id . '"';
                                             if ($id == $item) echo " selected";
@@ -93,19 +94,15 @@ $roles = tm_get_roles_array();
                                         }?>
                                     </select>
                                 </td>
-                                <?php if ($people) { ?>
-                                    <td>
-                                        <select class="widefat tm-searchable" name="member[]">
-                                            <?php foreach ($names as $id => $name){
-                                                echo '<option value="' . $id . '"';
-                                                if ($id == $key) echo " selected";
-                                                echo '>' . $name .'</option>';
-                                            }?>
-                                        </select>
-                                    </td>
-                                <?php  } else { ?>
-                                    <td><input type="text" class="widefat th_person_search_class" name="member[]" value="" /></td>
-                                <?php  } ?>
+                                <td>
+                                    <select class="widefat tm-searchable" name="member[]">
+                                        <?php foreach ($names as $id => $name){
+                                            echo '<option value="' . $id . '"';
+                                            if ($id == $key) echo " selected";
+                                            echo '>' . $name .'</option>';
+                                        }?>
+                                    </select>
+                                </td>
                                 <td><a class="button remove-row" href="#">Remove</a></td>
                             </tr>
                         <?php }
@@ -115,23 +112,19 @@ $roles = tm_get_roles_array();
                 <!-- empty hidden one for jQuery -->
                 <tr class="empty-cast-row screen-reader-text">
                     <td>
-                        <select class="widefat tm-searchable" name="postition[]">
+                        <select class="widefat tm-searchable" name="position[]">
 			                <?php foreach ($roles as $id => $name){
 				                echo '<option value="' . $id . '">' . $name .'</option>';
 			                }?>
                         </select>
                     </td>
-	                <?php if ($people) {?>
-                        <td>
-                            <select class="widefat tm-searchable" name="member[]">
-				                <?php foreach ($names as $id => $name){
-					                echo '<option value="' . $id . '">' . $name .'</option>';
-				                }?>
-                            </select>
-                        </td>
-	                <?php } else { ?>
-                        <td><input type="text" class="widefat th_person_search_class" name="member[]" value="" /></td>
-	                <?php } ?>
+                    <td>
+                        <select class="widefat tm-searchable" name="member[]">
+                            <?php foreach ($names as $id => $name){
+                                echo '<option value="' . $id . '">' . $name .'</option>';
+                            }?>
+                        </select>
+                    </td>
                     <td><a class="button remove-row" href="#">Remove</a></td>
                 </tr>
             </tbody>
