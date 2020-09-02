@@ -638,6 +638,12 @@ add_action( 'admin_init', 'add_admin_menu_separator' );
  * @since 0.5
  */
 function tm_show_shortcode() {
+    $options = get_option( 'tm_settings' );
+    if (isset($options['tm_members']) && $options['tm_members'] == 1) {
+        $useCast = true;
+    } else {
+        $useCast = false;
+    }
     $author = get_post_meta(get_the_ID(), 'th_show_info_author', true);
     if ($author == "") $author =  "unknown";
     $start = implode(" ", get_post_meta(get_the_ID(), 'th_show_info_start_date'));
@@ -670,7 +676,7 @@ function tm_show_shortcode() {
     if (is_null( $cast ) || empty($cast)){
         $casttext = "This show has no known cast";
     } else {
-        if($cast){
+        if($useCast){
             foreach ( $cast as $actor => $role ) {
                 foreach ($role as $item){
                     $casttext = $casttext . "<tr><td><a href=\"" . get_post_permalink($actor)."\">" . get_the_title($actor) . "</a> as " . $item . "</td></tr>";
@@ -691,9 +697,17 @@ function tm_show_shortcode() {
     if (is_null( $crew ) || empty($crew)){
         $casttext = "This show has no known crew";
     } else {
-        foreach ( $crew as $pos => $job ) {
-            foreach ($job as $item){
-                $casttext = $casttext . "<tr><td>" . $item . ": <a href=\"" . get_post_permalink($pos)."\">" . get_the_title($pos) . "</td></tr>";
+        if ($useCast){
+            foreach ( $crew as $pos => $job ) {
+                foreach ($job as $item){
+                    $casttext = $casttext . "<tr><td>" . $item . ": <a href=\"" . get_post_permalink($pos)."\">" . get_the_title($pos) . "</td></tr>";
+                }
+            }
+        } else {
+            foreach ( $crew as $pos => $job ) {
+                foreach ($job as $item){
+                    $casttext = $casttext . "<tr><td>" . $item . ": " . $pos . "</td></tr>";
+                }
             }
         }
     }
