@@ -648,7 +648,12 @@ function tm_show_shortcode() {
     if ($author == "") $author =  "unknown";
     $start = implode(" ", get_post_meta(get_the_ID(), 'th_show_info_start_date'));
     $end = implode(" ", get_post_meta(get_the_ID(), 'th_show_info_end_date'));
-    if ($start == $end){ $end = null; } else{
+    if ($start == $end){
+        // Remove end for one day performances
+        $end = null;
+        // Change Date format
+        $start = date("d/m/Y", strtotime($start));
+    } else{
         // Change Date format
         $start = date("d/m/Y", strtotime($start));
         $end = date("d/m/Y", strtotime($end));
