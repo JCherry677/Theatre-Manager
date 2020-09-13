@@ -648,6 +648,12 @@ function tm_show_shortcode() {
     if ($author == "") $author =  "unknown";
     $start = implode(" ", get_post_meta(get_the_ID(), 'th_show_info_start_date'));
     $end = implode(" ", get_post_meta(get_the_ID(), 'th_show_info_end_date'));
+    if ($start == $end){ $end = null; } else{
+        // Change Date format
+        $start = date("d/m/Y", strtotime($start));
+        $end = date("d/m/Y", strtotime($end));
+        $end = " - " . $end;
+    }
     $cast = get_post_meta(get_the_ID(), 'th_show_person_info_data', true);
     $crew = get_post_meta(get_the_ID(), 'th_show_crew_info_data', true);
     $reviews = get_post_meta(get_the_ID(), 'th_show_review_data');
@@ -669,7 +675,7 @@ function tm_show_shortcode() {
     }
     $data =  $data ."<table><tbody>
             <tr><td>Playwright</td><td>" . $author . "</td></tr>
-            <tr><td>Date</td><td>" . $start . " - " . $end . "</td></tr>";
+            <tr><td>Date</td><td>" . $start . $end . "</td></tr>";
     //cast data
     $data = $data . "<tr><td>Cast</td><td><table><tbody>";
     $casttext = "";
