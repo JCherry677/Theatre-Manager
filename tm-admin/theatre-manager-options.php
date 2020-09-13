@@ -26,7 +26,7 @@ function tm_settings_init(  ) {
 		'pluginPage'
 	);
 	add_settings_field( 
-		'tm_members', 
+		'tm_people', 
 		__( 'Use Members in shows', 'theatre-manager' ), 
 		'tm_people_render', 
 		'pluginPage', 

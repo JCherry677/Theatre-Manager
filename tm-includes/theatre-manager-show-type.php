@@ -383,7 +383,6 @@ function tm_show_person_save($post_id, $post){
 
     $options = get_option( 'tm_settings' );
     if (isset($options['tm_people']) && $options['tm_people'] == 1){
-        error_log("People is set");
         for ( $i = 0; $i < $count; $i++ ) {
             if ( $roles[$i] != '' ) {
                 if ( $members[$i] != '' ){
@@ -639,7 +638,7 @@ add_action( 'admin_init', 'add_admin_menu_separator' );
  */
 function tm_show_shortcode() {
     $options = get_option( 'tm_settings' );
-    if (isset($options['tm_members']) && $options['tm_members'] == 1) {
+    if (isset($options['tm_people']) && $options['tm_people'] == 1) {
         $useCast = true;
     } else {
         $useCast = false;
@@ -653,7 +652,6 @@ function tm_show_shortcode() {
     $reviews = get_post_meta(get_the_ID(), 'th_show_review_data');
     $data = "";
     //basic data
-    $options = get_option( 'tm_settings' );
     if (isset($options['tm_show_warnings']) && $options['tm_show_warnings'] == 1){
         $content = get_post_meta(get_the_ID(), 'th_show_content_warning_data', true);
         if (is_null( $content ) || empty($content)){

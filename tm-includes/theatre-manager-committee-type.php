@@ -186,8 +186,6 @@ if (isset($options['tm_committees']) && $options['tm_committees'] == 1){
         }
 	    //update the role's data
 	    foreach ($position as $pos => $per){
-	    	error_log($pos);
-	    	error_log( print_r($per, true));
 		    $old_roles = get_post_meta($pos, 'th_committee_role_data', true);
 		    if (empty($old_roles)){
 			    $old_roles = array();
