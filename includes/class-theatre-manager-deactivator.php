@@ -30,7 +30,14 @@ class Theatre_Manager_Deactivator {
 	 * @since    1.0.0
 	 */
 	public static function deactivate() {
-
+		// Unregister the post type, so the rules are no longer in memory.
+		unregister_post_type( 'theatre_show' );
+		unregister_post_type( 'theatre_member' );
+		unregister_post_type( 'theatre_committee' );
+		unregister_post_type( 'theatre_committee_role' );
+		unregister_post_type( 'theatre_warning' );
+		// Clear the permalinks to remove our post type's rules from the database.
+		flush_rewrite_rules();
 	}
 
 }
