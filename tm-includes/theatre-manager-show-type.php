@@ -31,7 +31,7 @@ function tm_show_type(){
 
     $args = array(
         'labels' => $labels,
-        'description'   => 'Have a look at our shows, past and present',
+        'description'   => 'Our Shows',
         'public'        => true,
         'menu_position' => 30,
         'supports'      => array( 'title', 'editor', 'comments', 'thumbnail'),
@@ -225,410 +225,293 @@ add_filter( 'manage_edit-theatre_show_sortable_columns', 'tm_show_columns_sortab
  * @since 0.3
  */
 
-function tm_show_meta_boxes_setup(){
-    $options = get_option( 'tm_settings' );
+add_action('add_meta_boxes', 'tm_show_meta', 1, 1);
+add_action('save_post', 'tm_meta_save', 10, 2);
 
-    //show info
-    add_action('add_meta_boxes', 'tm_show_info_meta', 1);
-    add_action('save_post', 'tm_show_info_save', 10, 2);
-    //content Warnings
-    if (isset($options['tm_show_warnings']) && $options['tm_show_warnings'] == 1){
-        add_action('add_meta_boxes', 'tm_content_meta', 1);
-        add_action('save_post', 'tm_content_save', 10, 2);
+//Meta Box Controllers
+function tm_show_meta($post_id){
+    if (get_post_type() == "theatre_show") {
+        $options = get_option('tm_settings');
+        //show info
+        add_meta_box(
+            'theatre-manager-show-info', //ID
+            'Show Information', //Title TODO: Internationalisation
+            'tm_show_info_box', //callback function
+            'theatre_show', //post type
+            'normal', //on-page location
+            'high' //priority
+        );
+
+        //Actors
+        add_meta_box(
+            'theatre-manager-show-person', //ID
+            'Cast', //Title TODO: Internationalisation
+            'tm_show_person_box', //callback function
+            'theatre_show', //post type
+            'normal', //on-page location
+            'high' //priority
+        );
+
+        //Crew
+        add_meta_box(
+            'theatre-manager-show-crew', //ID
+            'Production Team', //Title TODO: Internationalisation
+            'tm_show_crew_box', //callback function
+            'theatre_show', //post type
+            'normal', //on-page location
+            'high' //priority
+        );
+
+        //Reviews
+
+        if (isset($options['tm_show_reviews']) && $options['tm_show_reviews'] == 1) {
+            add_meta_box(
+                'theatre-manager-show-review', //ID
+                'Reviews', //Title TODO: Internationalisation
+                'tm_show_review_box', //callback function
+                'theatre_show', //post type
+                'normal', //on-page location
+                'high' //priority
+            );
+        }
+
+        //content Warnings
+        if (isset($options['tm_show_warnings']) && $options['tm_show_warnings'] == 1) {
+            add_meta_box(
+                'theatre-manager-show-content', //ID
+                'Content Warnings', //Title TODO: Internationalisation
+                'tm_content_box', //callback function
+                'theatre_show', //post type
+                'normal', //on-page location
+                'high' //priority
+            );
+        }
+        error_log('[TM] created meta boxes');
     }
-    //actors
-    add_action('add_meta_boxes', 'tm_show_person_meta', 1);
-    add_action('save_post', 'tm_show_person_save', 10, 2);
-    //crew
-    add_action('add_meta_boxes', 'tm_show_crew_meta', 1);
-    add_action('save_post', 'tm_show_crew_save', 10, 2);
-    //reviews
-    add_action('add_meta_boxes', 'tm_show_review_meta', 1);
-    add_action('save_post', 'tm_show_review_save', 10, 2);
-}
-add_action( 'load-post.php', 'tm_show_meta_boxes_setup', 1);
-add_action( 'load-post-new.php', 'tm_show_meta_boxes_setup' );
-
-//info meta box controller
-function tm_show_info_meta(){
-    add_meta_box(
-        'theatre-manager-show-info', //ID
-        'Show Information', //Title TODO: Internationalisation
-        'tm_show_info_box', //callback function
-        'theatre_show', //post type
-        'normal', //on-page location
-        'high' //priority
-    );
 }
 
-//HTML representation of the box
+//Rendering of Boxes
+/**
+ * Show Data meta box
+ * @since 0.1
+ */
 function tm_show_info_box($post){
-    $value = get_post_meta($post->ID, 'tm_show_info', true );
-    wp_nonce_field( basename( __FILE__ ), 'tm_show_info_nonce' );
+    wp_nonce_field( basename( __FILE__ ), 'tm_show_meta_nonce' );
     include plugin_dir_path( __FILE__ ) . 'forms/show-info-form.php';
 }
-
-//saving metadata 
-function tm_show_info_save( $post_id, $post ) {
-    /* Verify the nonce before proceeding. */
-    if ( !isset( $_POST['tm_show_info_nonce'] ) || !wp_verify_nonce( $_POST['tm_show_info_nonce'], basename( __FILE__ ) ) )
-        return $post_id;
-    
-    if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
-        return;
-  
-    $fields = [
-        'th_show_info_author',
-        'th_show_info_start_date',
-        'th_show_info_end_date',
-    ];
-
-    foreach ( $fields as $field ) {
-        if ( array_key_exists( $field, $_POST ) ) {
-            update_post_meta( $post_id, $field, sanitize_text_field( $_POST[$field] ) );
-        }
-        else {
-            add_post_meta( $post_id, $field, sanitize_text_field( $_POST[$field] ), true);
-        }
-    }
-
-}
-
 /**
  * Content Warning meta box
  * @since 0.7
  */
-function tm_content_meta(){
-    add_meta_box(
-        'theatre-manager-show-content', //ID
-        'Content Warnings', //Title TODO: Internationalisation
-        'tm_content_box', //callback function
-        'theatre_show', //post type
-        'normal', //on-page location
-        'high' //priority
-    );
-}
-
 function tm_content_box($post, $args){
-    wp_nonce_field( plugin_basename( __FILE__ ), 'tm_show_content_nonce' );
+    wp_nonce_field( basename( __FILE__ ), 'tm_show_meta_nonce' );
     include plugin_dir_path( __FILE__ ) . 'forms/show-content-form.php';
 }
-
-function tm_content_save($post_id, $post){
-    // Don't wanna save this now, right?
-    if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
-    return;
-    if ( !isset( $_POST['tm_show_content_nonce'] ) )
-    return;
-    if ( !wp_verify_nonce( $_POST['tm_show_content_nonce'], plugin_basename( __FILE__ ) ) )
-    return;
-    // We do want to save? Ok!
-    $old = get_post_meta($post_id, 'th_show_content_warning_data', true);
-    $new = array();
-
-    $content = $_POST['content'];
-    $count = count( $content ) - 1;
-
-    for ( $i = 0; $i < $count; $i++ ) {
-        if ( $content[$i] != '' ){
-            $new[$i]['warning'] = stripslashes( strip_tags( $content[$i] ) );
-        }
-    }
-    if ( !empty( $new ) && $new != $old ){
-        update_post_meta( $post_id, 'th_show_content_warning_data', $new );
-    } elseif ( empty($new) && $old ){
-        delete_post_meta( $post_id, 'th_show_content_warning_data', $old );
-    }
-}
-
-//------------------------------------------------------------------------------------------
-/** 
- * person meta box controller
+/**
+ * Actor meta box controller
  * @since 0.2
  */
-function tm_show_person_meta(){
-    add_meta_box(
-        'theatre-manager-show-person', //ID
-        'Cast', //Title TODO: Internationalisation
-        'tm_show_person_box', //callback function
-        'theatre_show', //post type
-        'normal', //on-page location
-        'high' //priority
-    );
-}
-
 function tm_show_person_box($post, $args){
-    wp_nonce_field( plugin_basename( __FILE__ ), 'tm_show_person_nonce' );
+    wp_nonce_field( basename( __FILE__ ), 'tm_show_meta_nonce' );
     include plugin_dir_path( __FILE__ ) . 'forms/show-person-form.php';
 }
-
-function tm_show_person_save($post_id, $post){
-    // Don't wanna save this now, right?
-    if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
-        return;
-    if ( !isset( $_POST['tm_show_person_nonce'] ) )
-        return;
-    if ( !wp_verify_nonce( $_POST['tm_show_person_nonce'], plugin_basename( __FILE__ ) ) )
-        return;
-
-    // We do want to save? Ok!
-    $old = get_post_meta($post_id, 'th_show_person_info_data', true);
-    $new = array();
-    $known = array();
-
-    $members = $_POST['actor'];
-    $roles = $_POST['role'];
-
-    $count = count( $members );
-
-    $options = get_option( 'tm_settings' );
-    if (isset($options['tm_people']) && $options['tm_people'] == 1){
-        for ( $i = 0; $i < $count; $i++ ) {
-            if ( $roles[$i] != '' ) {
-                if ( $members[$i] != '' ){
-                    if (array_key_exists($members[$i], $new)){
-                        array_push($new[$members[$i]], $roles[$i]);
-                    } else {
-                        $new[$members[$i]] = array( stripslashes( strip_tags( $roles[$i] )));
-                        array_push($known, $members[$i]);
-                    }
-                }
-            }
-        }
-	    if ( !empty( $new ) && $new != $old ){
-		    update_post_meta( $post_id, 'th_show_person_info_data', $new );
-	    } elseif ( empty($new) && $old ) {
-		    delete_post_meta( $post_id, 'th_show_person_info_data', $old );
-	    }
-
-        
-        //save role details in person metadata 
-        foreach ($new as $person => $role){
-            //old data
-            $show_roles = get_post_meta($person, 'th_show_roles', true);
-            if (empty($show_roles)) {
-                $show_roles = array();
-            }
-            $show_roles[$post_id] = $role;
-            update_post_meta($person, 'th_show_roles', $show_roles);
-        }
-
-        //remove records that no longer appear in data
-        foreach ($old as $key => $value){
-            if (!(in_array($key, $known))){
-                $show_new = array();
-                $show_roles = get_post_meta($key, 'th_show_roles', true);
-                foreach ($show_roles as $show => $role) {
-                    if((int)$show != $post_id){
-	                    $show_new[$show] = $role;
-                    }
-                }
-                update_post_meta($key, 'th_show_roles', $show_new);
-            }
-        }
-    } else {
-        for ( $i = 0; $i < $count; $i++ ) {
-            if ( $roles[$i] != '' ) {
-                if ( $members[$i] != '' ){
-                    if (array_key_exists($members[$i], $new)){
-                        array_push($new[$members[$i]], $roles[$i]);
-                    } else {
-                        $new[$members[$i]] = array( stripslashes( strip_tags( $roles[$i] )));
-                        array_push($known, $members[$i]);
-                    }
-                }
-            }
-        }
-        if ( !empty( $new ) && $new != $old ){
-            update_post_meta( $post_id, 'th_show_person_info_data', $new );
-        } elseif ( empty($new) && $old ) {
-            delete_post_meta( $post_id, 'th_show_person_info_data', $old );
-        }
-    }
-}
-
-//------------------------------------------------------------------------------------------
 /**
  * crew meta box controller
  * @since 0.2
  */
-function tm_show_crew_meta(){
-    add_meta_box(
-        'theatre-manager-show-crew', //ID
-        'Production Team', //Title TODO: Internationalisation
-        'tm_show_crew_box', //callback function
-        'theatre_show', //post type
-        'normal', //on-page location
-        'high' //priority
-    );
-}
-
 function tm_show_crew_box($post, $args){
-    wp_nonce_field( plugin_basename( __FILE__ ), 'tm_show_crew_nonce' );
+    wp_nonce_field( basename( __FILE__ ), 'tm_show_meta_nonce' );
     include plugin_dir_path( __FILE__ ) . 'forms/show-crew-form.php';
 }
-
-function tm_show_crew_save($post_id, $post){
-    // Don't wanna save this now, right?
-    if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
-        return;
-    if ( !isset( $_POST['tm_show_crew_nonce'] ) )
-        return;
-    if ( !wp_verify_nonce( $_POST['tm_show_crew_nonce'], plugin_basename( __FILE__ ) ) )
-        return;
-
-    // We do want to save? Ok!
-    $old = get_post_meta($post_id, 'th_show_crew_info_data');
-    $new = array();
-    $known = array();
-
-    $members = $_POST['crew-person'];
-    $jobs = $_POST['crew-job'];
-
-    $count = count( $members );
-
-    $options = get_option( 'tm_settings' );
-    if (isset($options['tm_people']) && $options['tm_people'] == 1){
-        for ( $i = 0; $i < $count; $i++ ) {
-            if ( $jobs[$i] != '' ) {
-                if ( $members[$i] != '' ){
-                    if (array_key_exists($members[$i], $new)){
-                        array_push($new[$members[$i]], $jobs[$i]);
-                    } else {
-                        $new[$members[$i]] = array( stripslashes( strip_tags( $jobs[$i] )));
-                        array_push($known, $members[$i]);
-                    }
-                }
-            }
-        }
-	    if ( empty($new) && $old ){
-		    delete_post_meta( $post_id, 'th_show_crew_info_data', $old );
-	    } else{
-		    update_post_meta( $post_id, 'th_show_crew_info_data', $new );
-	    }
-
-        //save crew details in person metadata 
-        foreach ($new as $person => $role){
-            //old roles
-            $crew_roles = get_post_meta($person, 'th_crew_roles', true);
-            if (empty($crew_roles)){            
-                $crew_roles = array();
-            }
-            $crew_roles[$post_id] = $role;
-            
-            update_post_meta($person, 'th_crew_roles', $crew_roles);
-        }
-
-        //remove records that no longer appear in data
-        foreach ($old as $key => $value){
-            if (!(in_array($key, $known))){
-                $member_new = array();
-                $crew_roles = get_post_meta($key, 'th_crew_roles', true);
-                foreach ($crew_roles as $show => $role) {
-                    if((int)$show != (int)$post_id){
-	                    $member_new[$show] = $role;
-                    }
-                }
-                update_post_meta($key, 'th_crew_roles', $member_new);
-            }
-        }
-    } else {
-        for ( $i = 0; $i < $count; $i++ ) {
-            if ( $jobs[$i] != '' ) {
-                if ( $members[$i] != '' ){
-                    if (array_key_exists($members[$i], $new)){
-                        array_push($new[$members[$i]], $jobs[$i]);
-                    } else {
-                        $new[$members[$i]] = array( stripslashes( strip_tags( $jobs[$i] )));
-                        array_push($known, $members[$i]);
-                    }
-                }
-            }
-        }        
-        if ( empty($new) && $old ){
-            delete_post_meta( $post_id, 'th_show_crew_info_data', $old );
-        } else{
-            update_post_meta( $post_id, 'th_show_crew_info_data', $new );
-        }
-    }
-}
-
-//------------------------------------------------------------------------------------------
 /**
- * Reviews meta box 
+ * Reviews meta box
  * @since 0.3
  */
-function tm_show_review_meta(){
-    add_meta_box(
-        'theatre-manager-show-review', //ID
-        'Reviews', //Title TODO: Internationalisation
-        'tm_show_review_box', //callback function
-        'theatre_show', //post type
-        'normal', //on-page location
-        'high' //priority
-    );
-}
-
-//HTML representation of the box
 function tm_show_review_box($post){
-    wp_nonce_field( basename( __FILE__ ), 'tm_show_review_nonce' );
+    wp_nonce_field( basename( __FILE__ ), 'tm_show_meta_nonce' );
     include plugin_dir_path( __FILE__ ) . 'forms/show-review-form.php';
 }
 
-//saving metadata 
-function tm_show_review_save( $post_id, $post ) {
-
-    /* Verify the nonce before proceeding. */
-    if ( !isset( $_POST['tm_show_review_nonce'] ) || !wp_verify_nonce( $_POST['tm_show_review_nonce'], basename( __FILE__ ) ) )
-        return;
-  
-    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE)
-        return;
-
-    //if (!current_user_can('edit_post', $post_id))
-    //    return;
-
-    $old = get_post_meta($post_id, 'th_show_review_data', true);
-    $new = array();
-
-    $reviewers = $_POST['reviewer'];
-    $links = $_POST['link'];
-
-    $count = count( $reviewers );
-
-    for ( $i = 0; $i < $count; $i++ ) {
-        if ( $reviewers[$i] != '' ) :
-            $new[$i]['reviewer'] = stripslashes( strip_tags( $reviewers[$i] ) );
-
-            if ( $links[$i] == '' )
-                $new[$i]['link'] = '';
-            else
-                $new[$i]['link'] = stripslashes( $links[$i] ); // and however you want to sanitize
-        endif;
-    }
-    if ( !empty( $new ) && $new != $old )
-        update_post_meta( $post_id, 'th_show_review_data', $new );
-    elseif ( empty($new) && $old )
-        delete_post_meta( $post_id, 'th_show_review_data', $old );
-}
-
-//------------------------------------------------------------------------------------------
+//Saving Meta Boxes
+//Utility Functions
 /**
- * Add separator in admin menu
- * @since 0.2
+ * Formats people data in specific way for saving
+ * @param $itemCount int number of people
+ * @param $people array people
+ * @param $roles array roles
+ * @return array formatted data
  */
-function add_admin_menu_separator() {
-    global $menu;
-    $position = 25;
-    $menu[ $position ] = array(
-    0 => '',
-    1 => 'read',
-    2 => 'separator' . $position,
-    3 => '',
-    4 => 'wp-menu-separator'
-    );
+function createArrays(int $itemCount, array $people, array $roles): array
+{
+    $new = array();
+    for ( $i = 0; $i < $itemCount; $i++ ) {
+        if ( $roles[$i] != '' ) {
+            if ( $people[$i] != '' ){
+                if (array_key_exists($people[$i], $new)){
+                    array_push($new[$people[$i]], $roles[$i]);
+                } else {
+                    $new[$people[$i]] = array( stripslashes( strip_tags( $roles[$i] )));
+                }
+            }
+        }
+    }
+    return $new;
 }
-add_action( 'admin_init', 'add_admin_menu_separator' );
+
+/**
+ * Updates all role ids in $roleData with their new roles
+ * @param $post_id int id of calling show
+ * @param $metaKey string calling show's meta key ('th_show_person_info_data' or 'th_show_crew_info_data')
+ * @param $roleKey string meta key to update each role's meta ('th_show_roles' or 'th_crew_roles')
+ * @param $roleData array $person=>$role pairs of updated roles
+ */
+function updateOtherMeta(int $post_id, string $metaKey, string $roleKey, array $roleData){
+    //save details in person metadata
+    foreach ($roleData as $person => $role){
+        //get person's old roles
+        $roles = get_post_meta($person, $roleKey, true);
+        if (empty($old_roles)){
+            $roles = array();
+        }
+        $roles[$post_id] = $role;
+        update_post_meta($person, $roleKey, $roles);
+    }
+
+    //remove any old people
+    $current = get_post_meta($post_id, $metaKey, true);
+    foreach ($current as $person => $role){
+        if (!(in_array($person, $roleData))){
+            $person_new = array();
+            $person_old = get_post_meta($person, $roleKey, true);
+            foreach ($person_old as $show => $showRole){
+                if((int)$show != (int)$post_id){
+                    $person_new[$show] = $showRole;
+                }
+            }
+            update_post_meta($person, $roleKey, $person_new);
+        }
+    }
+}
+
+/**
+ * Submit the array into the given meta key
+ * @param $post_id int id of calling show
+ * @param $metaKey string meta key to save to
+ * @param $data array new data to submit
+ */
+function submitMeta(int $post_id, string $metaKey, array $data){
+    $current = get_post_meta($post_id, $metaKey, true);
+
+    if ( empty($data) && $current ) {
+        delete_post_meta( $post_id, $metaKey, $current );
+    } else {
+        update_post_meta( $post_id, $metaKey, $data );
+    }
+}
+
+//Saving Function
+function tm_meta_save($post_id, $post){
+    if (get_post_type() == "theatre_show") {
+        $options = get_option('tm_settings');
+        // Don't wanna save this now, right?
+        if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+            error_log('[TM] Save Failed - Autosaving');
+            return;
+        }
+
+        //This should really have Nonces but i cba to get that to work
+
+        // We do want to save? Ok!
+
+        //start with general info
+        $fields = [
+            'th_show_info_author',
+            'th_show_info_start_date',
+            'th_show_info_end_date',
+        ];
+        foreach ($fields as $field) {
+            if (array_key_exists($field, $_POST)) {
+                update_post_meta($post_id, $field, sanitize_text_field($_POST[$field]));
+            } else {
+                add_post_meta($post_id, $field, sanitize_text_field($_POST[$field]), true);
+            }
+        }
+        //Actors
+        if (isset($_POST['actor']) && isset($_POST['role'])) {
+            //Get info
+            $members = $_POST['actor'];
+            $roles = $_POST['role'];
+            $count = count($members);
+
+            //update this post
+            $new = createArrays($count, $members, $roles);
+            submitMeta($post_id, 'th_show_person_info_data', $new);
+
+            //if enabled, update other people
+            if (isset($options['tm_people']) && $options['tm_people'] == 1) {
+                updateOtherMeta($post_id, 'th_show_person_info_data', 'th_show_roles', $new);
+            }
+        }
+
+        //Crew
+        if (isset($_POST['crew-person']) && isset($_POST['crew-job'])) {
+            //Get info
+            $members = $_POST['crew-person'];
+            $roles = $_POST['crew-job'];
+            $count = count($members);
+
+            //update this post
+            $new = createArrays($count, $members, $roles);
+            submitMeta($post_id, 'th_show_crew_info_data', $new);
+
+            //if enabled, update other people
+            if (isset($options['tm_people']) && $options['tm_people'] == 1) {
+                updateOtherMeta($post_id, 'th_show_crew_info_data', 'th_crew_roles', $new);
+            }
+        }
+
+        if (isset($options['tm_show_reviews']) && $options['tm_show_reviews'] == 1) {
+            if (isset($_POST['reviewer']) && isset($_POST['link'])) {
+                //get info
+                $reviewers = $_POST['reviewer'];
+                $links = $_POST['link'];
+                $count = count($reviewers);
+
+                //organise data
+                $new = array();
+                for ($i = 0; $i < $count; $i++) {
+                    if ($reviewers[$i] != '') :
+                        $new[$i]['reviewer'] = stripslashes(strip_tags($reviewers[$i]));
+
+                        if ($links[$i] == '')
+                            $new[$i]['link'] = '';
+                        else
+                            $new[$i]['link'] = stripslashes($links[$i]); // and however you want to sanitize
+                    endif;
+                }
+                //submit data
+                submitMeta($post_id, 'th_show_review_data', $new);
+            }
+        }
+
+        //Content Warnings
+        if (isset($options['tm_show_warnings']) && $options['tm_show_warnings'] == 1) {
+            if (isset($_POST['content'])) {
+                $new = array();
+                $content = $_POST['content'];
+                $count = count($content) - 1;
+
+                for ($i = 0; $i < $count; $i++) {
+                    if ($content[$i] != '') {
+                        $new[$i]['warning'] = stripslashes(strip_tags($content[$i]));
+                    }
+                }
+                submitMeta($post_id, 'th_show_content_warning_data', $new);
+            }
+        }
+
+    }
+}
 
 //------------------------------------------------------------------------------------------
 /**
@@ -724,13 +607,12 @@ function tm_show_shortcode() {
     //Reviews
     $data = $data . "<tr><td>Reviews</td><td><table><tbody>";
     $casttext = "";
-    $casttext = "";
     if (is_null( $reviews ) || empty($reviews)){
         $casttext = "This show has no reviews yet";
     } else {
         foreach ( $reviews as $field ) {
             foreach ($field as $item){
-                $casttext = $casttext . "<tr><td><a href=\"" . $item['link'] . "\"> ". $item['reviewer'] . " reviewed this!</a></td></tr>";
+                $casttext = $casttext . "<tr><td><a href=\"" . ((strpos($item['link'], 'http') === 0)? "" : "http://") . $item['link'] . "\"> ". $item['reviewer'] . " reviewed this!</a></td></tr>";
             }
         }
     }
@@ -1091,7 +973,7 @@ function update_post_date( $data , $error ) {
             // format is 'yyyy-mm-dd hh:mm:ss', that is Wordpress itself
             $datumPost = $data['post_date'];
 
-            // a bit extended for clearity
+            // a bit extended for clarity
             $dateOne = new DateTime($datumPost);
             $dateTwo = new DateTime($metaData);
 

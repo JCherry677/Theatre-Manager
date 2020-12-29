@@ -5,7 +5,7 @@
  * @wordpress-plugin
  * Plugin Name: Theatre Manager
  * Description: A plugin to manage theatrical productions, storing information about who is involved. Can also be used as an archive
- * Version: 0.9.3
+ * Version: 0.9.5
  * Requires at least: 5.4
  * Requires PHP: 7.2
  * Author: John Cherry
@@ -106,7 +106,6 @@ function tm_id_lookup($name, $type){
 function tm_get_names_array(){
 	$names = array();
 	global $wpdb;
-	$search = $wpdb->esc_like($_REQUEST['q']);
 	$query = 'SELECT ID,post_title FROM ' . $wpdb->posts . '
         WHERE post_type = \'theatre_person\'
         AND post_status = \'publish\'
@@ -127,7 +126,6 @@ function tm_get_names_array(){
 function tm_get_roles_array(){
 	$names = array();
 	global $wpdb;
-	$search = $wpdb->esc_like($_REQUEST['q']);
 	$query = 'SELECT ID,post_title FROM ' . $wpdb->posts . '
         WHERE post_type = \'theatre_role\'
         AND post_status = \'publish\'
@@ -139,65 +137,4 @@ function tm_get_roles_array(){
 		$names[$id] = $post_title;
 	}
 	return $names;
-}
-
-/**
- * Utility Functions for autocomplete text
- * @since 0.7
- * @deprecated since 0.8.3, no longer used
- */
-add_action('wp_enqueue_scripts', 'tm_wp_enqueue_scripts');
-function tm_wp_enqueue_scripts() {
-	wp_enqueue_script('suggest');
-}
-//@removed 0.8.3
-add_action('wp_ajax_th_person_lookup', 'th_person_lookup');
-add_action('wp_ajax_nopriv_th_person_lookup', 'th_person_lookup');
-
-/**
- * @deprecated since 0.8.3
- */
-function th_person_lookup() {
-	global $wpdb;
-	$search = $wpdb->esc_like($_REQUEST['q']);
-	$query = 'SELECT ID,post_title FROM ' . $wpdb->posts . '
-        WHERE post_title LIKE \'' . $search . '%\'
-        AND post_type = \'theatre_person\'
-        AND post_status = \'publish\'
-        ORDER BY post_title ASC';
-	$rows = $wpdb->get_results($query);
-	foreach ($rows as $row) {
-		$post_title = $row->post_title;
-		$id = $row->ID;
-		$text = $post_title . " (" . $id . ")\n";
-		echo $text;
-	}
-	wp_die();
-}
-
-//autocomplete role
-add_action('wp_ajax_th_role_lookup', 'th_role_lookup');
-add_action('wp_ajax_nopriv_th_role_lookup', 'th_role_lookup');
-
-/**
- * @deprecated since 0.9.0
- */
-function th_role_lookup() {
-    global $wpdb;
-
-    $search = $wpdb->esc_like($_REQUEST['q']);
-
-    $query = 'SELECT ID,post_title FROM ' . $wpdb->posts . '
-        WHERE post_title LIKE \'' . $search . '%\'
-        AND post_type = \'theatre_role\'
-        AND post_status = \'publish\'
-        ORDER BY post_title ASC';
-    $rows = $wpdb->get_results($query);
-    foreach ($rows as $row) {
-        $post_title = $row->post_title;
-        $id = $row->ID;
-        $text = $post_title . " (" . $id . ")\n";
-        echo $text;
-    }
-    wp_die();
 }

@@ -18,7 +18,7 @@ function tm_add_admin_menu(  ) {
 //create options
 function tm_settings_init(  ) { 
 	register_setting( 'pluginPage', 'tm_settings' );
-	//Main Section
+	//Show Section
 	add_settings_section(
 		'tm_show_section',
 		__( 'Show Features', 'theatre-manager' ),
@@ -39,6 +39,13 @@ function tm_settings_init(  ) {
 		'pluginPage',
 		'tm_show_section'
 	);
+    add_settings_field(
+        'tm_show_reviews',
+        __( 'Use Show Reviews', 'theatre-manager' ),
+        'tm_show_reviews_render',
+        'pluginPage',
+        'tm_show_section'
+    );
 
 	//Committee section
 	add_settings_section(
@@ -124,6 +131,12 @@ function tm_show_warnings_render(  ) {
 	?>
 	<input type='checkbox' name='tm_settings[tm_show_warnings]' <?php if (isset($options['tm_show_warnings'])) checked( $options['tm_show_warnings'], 1 ); ?> value='1'>
 	<?php
+}
+function tm_show_reviews_render(  ) {
+    $options = get_option( 'tm_settings' );
+    ?>
+    <input type='checkbox' name='tm_settings[tm_show_reviews]' <?php if (isset($options['tm_show_reviews'])) checked( $options['tm_show_reviews'], 1 ); ?> value='1'>
+    <?php
 }
 
 //committees
