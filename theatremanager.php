@@ -5,7 +5,7 @@
  * @wordpress-plugin
  * Plugin Name: Theatre Manager
  * Description: A plugin to manage theatrical productions, storing information about who is involved. Can also be used as an archive
- * Version: 0.9.5
+ * Version: 1.0.0
  * Requires at least: 5.4
  * Requires PHP: 7.2
  * Author: John Cherry
@@ -20,11 +20,10 @@ if ( ! defined( 'ABSPATH' )) die;
 
 
 //fetch relevant pages
-require_once(dirname(__FILE__) . '/tm-includes/theatre-manager-person-type.php');
-require_once(dirname(__FILE__) . '/tm-includes/theatre-manager-committee-type.php');
-require_once(dirname(__FILE__) . '/tm-includes/theatre-manager-committee-role-type.php');
-require_once(dirname(__FILE__) . '/tm-includes/theatre-manager-show-type.php');
-require_once(dirname(__FILE__) . '/tm-includes/theatre-manager-warning-type.php');
+require_once( dirname( __FILE__ ) . '/tm-includes/theatre-manager-person-type.php');
+require_once( dirname( __FILE__ ) . '/tm-includes/theatre-manager-committee-type.php');
+require_once( dirname( __FILE__ ) . '/tm-includes/theatre-manager-committee-role-type.php');
+require_once( dirname( __FILE__ ) . '/tm-includes/theatre-manager-show-type.php');
 require_once( dirname( __FILE__ ) . '/tm-admin/theatre-manager-options.php' );
 
 //------------------------------------------------------------------------------------------
@@ -47,7 +46,6 @@ function tm_deactivate() {
     unregister_post_type( 'theatre_member' );
     unregister_post_type( 'theatre_committee' );
     unregister_post_type( 'theatre_committee_role' );
-    unregister_post_type( 'theatre_warning' );
     // Clear the permalinks to remove our post type's rules from the database.
     flush_rewrite_rules();
 }
@@ -59,7 +57,8 @@ register_deactivation_hook( __FILE__, 'tm_deactivate' );
  * Not the best way to do this but guarantees content with every theme
  * @since 0.7
  */
-function tm_shortcodes_on_posts( $content ) {
+function tm_shortcodes_on_posts( $content ): string
+{
     global $post;
     if( ! $post instanceof WP_Post ) return $content;
   
@@ -83,8 +82,11 @@ add_filter( 'the_content', 'tm_shortcodes_on_posts' );
 /**
  * Utility Functions
  */
-/** 
+/**
  * tm_id_lookup - get id from name
+ * @param $name string name of post
+ * @param $type string post type
+ * @return false|integer
  * @since 0.6
  */
 function tm_id_lookup($name, $type){
@@ -103,7 +105,8 @@ function tm_id_lookup($name, $type){
  * @since 0.8.4
  * @return array containing all persons in form post_id => post_name
  */
-function tm_get_names_array(){
+function tm_get_names_array(): array
+{
 	$names = array();
 	global $wpdb;
 	$query = 'SELECT ID,post_title FROM ' . $wpdb->posts . '
@@ -123,7 +126,8 @@ function tm_get_names_array(){
  * @since 0.9
  * @return array containing all persons in form post_id => post_name
  */
-function tm_get_roles_array(){
+function tm_get_roles_array(): array
+{
 	$names = array();
 	global $wpdb;
 	$query = 'SELECT ID,post_title FROM ' . $wpdb->posts . '

@@ -43,6 +43,7 @@ function tm_person_type(){
     );
 
     register_post_type('theatre_person', $args);
+    flush_rewrite_rules();
 }
 add_action('init', 'tm_person_type');
 

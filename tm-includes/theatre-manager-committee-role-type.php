@@ -39,6 +39,7 @@ if (isset($options['tm_committees']) && $options['tm_committees'] == 1){
         );
 
         register_post_type('theatre_role', $args);
+        flush_rewrite_rules();
     }
 
     //------------------------------------------------------------------------------------------
@@ -86,7 +87,7 @@ if (isset($options['tm_committees']) && $options['tm_committees'] == 1){
 
     function tm_role_enter_title( $input ) {
         if ( 'theatre_role' === get_post_type() ) {
-            return __( 'Committee Role Name', 'your_textdomain' );
+            return __( 'Committee Role Name', 'theatre-manager');
         }
 
         return $input;

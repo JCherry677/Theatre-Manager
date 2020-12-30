@@ -8,7 +8,7 @@
 if ( ! defined( 'ABSPATH' )) die;
 //create show type
 function tm_show_type(){
-	$options = get_option( 'tm_settings' );
+    $options = get_option('tm_settings');
 	$show_block = false;
 	if (isset($options['tm_block_show']) && $options['tm_block_show'] == 1) {
 		$show_block = true;
@@ -42,6 +42,7 @@ function tm_show_type(){
     );
 
     register_post_type('theatre_show', $args);
+    flush_rewrite_rules();
 }
 add_action( 'init', 'tm_show_type' );
 
@@ -86,22 +87,28 @@ add_filter( 'post_updated_messages', 'tm_show_messages' );
 function create_show_taxonomies(){
     //season taxonomy - hierarchical
     $labels = array(
-        'name'              => _x( 'Season', 'taxonomy general name' ),
-        'singular_name'     => _x( 'Season', 'taxonomy singular name' ),
-        'search_items'      => __( 'Search Seasons' ),
-        'all_items'         => __( 'All Seasons' ),
-        'parent_item'       => __( 'Parent Season' ),
-        'parent_item_colon' => __( 'Parent Season:' ),
-        'edit_item'         => __( 'Edit Season' ),
-        'update_item'       => __( 'Update Season' ),
-        'add_new_item'      => __( 'Add New Season' ),
-        'new_item_name'     => __( 'New Season Name' ),
-        'menu_name'         => __( 'Seasons' ),
+        'name'                  => _x( 'Season', 'taxonomy general name' ),
+        'singular_name'         => _x( 'Season', 'taxonomy singular name' ),
+        'search_items'          => __( 'Search Seasons' ),
+        'all_items'             => __( 'All Seasons' ),
+        'parent_item'           => __( 'Parent Season' ),
+        'parent_item_colon'     => __( 'Parent Season:' ),
+        'edit_item'             => __( 'Edit Season' ),
+        'view_item'             => __( 'View Season' ),
+        'update_item'           => __( 'Update Season' ),
+        'add_new_item'          => __( 'Add New Season' ),
+        'new_item_name'         => __( 'New Season Name' ),
+        'not_found'             => __( 'No Seasons '),
+        'items_list_navigation' => __( 'Season List Navigation' ),
+        'items_list'            => __( 'Season List' ),
+        'back_to_items'         => __( '&larr; Go to Seasons' ),
+        'menu_name'             => __( 'Seasons' ),
+
     );
     $args = array(
 		'hierarchical'      => true,
 		'labels'            => $labels,
-		'show_ui'           => true,
+		'public'            => true,
         'show_admin_column' => true,
         'show_in_rest'      => true, //true => Gutenberg editor, false => old editor
 		'query_var'         => true,
@@ -111,20 +118,27 @@ function create_show_taxonomies(){
 
     //venue taxonomy - hierarchical
     $labels = array(
-        'name'              => _x( 'Venue', 'taxonomy general name' ),
-        'singular_name'     => _x( 'Venue', 'taxonomy singular name' ),
-        'search_items'      => __( 'Search Venues' ),
-        'all_items'         => __( 'All Venues' ),
-        'edit_item'         => __( 'Edit Venue' ),
-        'update_item'       => __( 'Update Venue' ),
-        'add_new_item'      => __( 'Add New Venue' ),
-        'new_item_name'     => __( 'New Venue Name' ),
-        'menu_name'         => __( 'Venues' ),
+        'name'                  => _x( 'Venues', 'taxonomy general name' ),
+        'singular_name'         => _x( 'Venue', 'taxonomy singular name' ),
+        'search_items'          => __( 'Search Venues' ),
+        'all_items'             => __( 'All Venues' ),
+        'parent_item'           => __( 'Parent Venue' ),
+        'parent_item_colon'     => __( 'Parent Venue:' ),
+        'edit_item'             => __( 'Edit Venue' ),
+        'view_item'             => __( 'View Venue' ),
+        'update_item'           => __( 'Update Venue' ),
+        'add_new_item'          => __( 'Add New Venue' ),
+        'new_item_name'         => __( 'New Venue Name' ),
+        'not_found'             => __( 'No Venues '),
+        'items_list_navigation' => __( 'Venue List Navigation' ),
+        'items_list'            => __( 'Venue List' ),
+        'back_to_items'         => __( '&larr; Go to Venues' ),
+        'menu_name'             => __( 'Venues' ),
     );
     $args = array(
 		'hierarchical'      => true,
 		'labels'            => $labels,
-		'show_ui'           => true,
+		'public'            => true,
         'show_admin_column' => true,
         'show_in_rest'      => true, //true => Gutenberg editor, false => old editor
 		'query_var'         => true,
@@ -134,26 +148,73 @@ function create_show_taxonomies(){
 
     //show_type taxonomy - hierarchical
     $labels = array(
-        'name'              => _x( 'Show Type', 'taxonomy general name' ),
-        'singular_name'     => _x( 'Show Type', 'taxonomy singular name' ),
-        'search_items'      => __( 'Search Types' ),
-        'all_items'         => __( 'All Types' ),
-        'edit_item'         => __( 'Edit Type' ),
-        'update_item'       => __( 'Update Type' ),
-        'add_new_item'      => __( 'Add New Type' ),
-        'new_item_name'     => __( 'New Type Name' ),
-        'menu_name'         => __( 'Show Types' ),
+        'name'                  => _x( 'Show Type', 'taxonomy general name' ),
+        'singular_name'         => _x( 'Show Type', 'taxonomy singular name' ),
+        'search_items'          => __( 'Search Show Types' ),
+        'all_items'             => __( 'All Show Types' ),
+        'parent_item'           => __( 'Parent Show Type' ),
+        'parent_item_colon'     => __( 'Parent Show Type:' ),
+        'edit_item'             => __( 'Edit Show Type' ),
+        'view_item'             => __( 'View Show Type' ),
+        'update_item'           => __( 'Update Show Type' ),
+        'add_new_item'          => __( 'Add New Show Type' ),
+        'new_item_name'         => __( 'New Show Type Name' ),
+        'not_found'             => __( 'No Show Types '),
+        'items_list_navigation' => __( 'Show Type List Navigation' ),
+        'items_list'            => __( 'Show Type List' ),
+        'back_to_items'         => __( '&larr; Go to Show Types' ),
+        'menu_name'             => __( 'Show Types' ),
     );
     $args = array(
 		'hierarchical'      => true,
 		'labels'            => $labels,
-		'show_ui'           => true,
+		'public'            => true,
         'show_admin_column' => true,
         'show_in_rest'      => true, //true => Gutenberg editor, false => old editor
 		'query_var'         => true,
 		'rewrite'           => array( 'slug' => 'type' ),
     );
     register_taxonomy( 'show_type', array( 'theatre_show' ), $args );
+
+    /**
+     * content_warning taxonomy
+     * @since 1.0
+     * Replaces Custom post type
+     */
+    $options = get_option('tm_settings');
+    error_log('[TM] Show Warnings: ' . $options['tm_show_warnings']);
+    if (isset($options['tm_show_warnings']) && $options['tm_show_warnings'] == 1) {
+        $labels = array(
+            'name'                          => _x( 'Content Warnings', 'taxonomy general name' ),
+            'singular_name'                 => _x( 'Content Warning', 'taxonomy singular name' ),
+            'search_items'                  => __( 'Search Content Warnings' ),
+            'all_items'                     => __( 'All Content Warnings' ),
+            'edit_item'                     => __( 'Edit Content Warning' ),
+            'view_item'                     => __( 'View Content Warning' ),
+            'update_item'                   => __( 'Update Content Warning' ),
+            'add_new_item'                  => __( 'Add New Content Warning' ),
+            'new_item_name'                 => __( 'New Content Warning Name' ),
+            'not_found'                     => __( 'No Content Warnings '),
+            'items_list_navigation'         => __( 'Content Warning List Navigation' ),
+            'items_list'                    => __( 'Content Warning List' ),
+            'back_to_items'                 => __( '&larr; Go to Content Warnings' ),
+            'menu_name'                     => __( 'Content Warnings' ),
+            'popular_items'                 => __( 'Popular Content Warnings' ),
+            'separate_items_with_commas'    => __( 'Separate Content Warnings with commas' ),
+            'add_or_remove_items'           => __( 'Add or remove Content Warnings' ),
+            'choose_from_most_used'         => __( 'Choose from the most used Content Warnings' ),
+        );
+        $args = array(
+            'labels'        => $labels,
+            'description'   => __( 'Content Warnings for shows' ),
+            'public'        => true,
+            'hierarchical'  => false,
+            'show_in_rest'  => true,
+            'query_var'     => true,
+            'rewrite'       => array( 'slug' => 'content_warning' ),
+        );
+        register_taxonomy( 'content_warning', array( 'theatre_show' ), $args );
+    }
 }
 add_action( 'init', 'create_show_taxonomies', 0 );
 
@@ -263,7 +324,6 @@ function tm_show_meta($post_id){
         );
 
         //Reviews
-
         if (isset($options['tm_show_reviews']) && $options['tm_show_reviews'] == 1) {
             add_meta_box(
                 'theatre-manager-show-review', //ID
@@ -274,19 +334,6 @@ function tm_show_meta($post_id){
                 'high' //priority
             );
         }
-
-        //content Warnings
-        if (isset($options['tm_show_warnings']) && $options['tm_show_warnings'] == 1) {
-            add_meta_box(
-                'theatre-manager-show-content', //ID
-                'Content Warnings', //Title TODO: Internationalisation
-                'tm_content_box', //callback function
-                'theatre_show', //post type
-                'normal', //on-page location
-                'high' //priority
-            );
-        }
-        error_log('[TM] created meta boxes');
     }
 }
 
@@ -298,14 +345,6 @@ function tm_show_meta($post_id){
 function tm_show_info_box($post){
     wp_nonce_field( basename( __FILE__ ), 'tm_show_meta_nonce' );
     include plugin_dir_path( __FILE__ ) . 'forms/show-info-form.php';
-}
-/**
- * Content Warning meta box
- * @since 0.7
- */
-function tm_content_box($post, $args){
-    wp_nonce_field( basename( __FILE__ ), 'tm_show_meta_nonce' );
-    include plugin_dir_path( __FILE__ ) . 'forms/show-content-form.php';
 }
 /**
  * Actor meta box controller
@@ -493,23 +532,6 @@ function tm_meta_save($post_id, $post){
                 submitMeta($post_id, 'th_show_review_data', $new);
             }
         }
-
-        //Content Warnings
-        if (isset($options['tm_show_warnings']) && $options['tm_show_warnings'] == 1) {
-            if (isset($_POST['content'])) {
-                $new = array();
-                $content = $_POST['content'];
-                $count = count($content) - 1;
-
-                for ($i = 0; $i < $count; $i++) {
-                    if ($content[$i] != '') {
-                        $new[$i]['warning'] = stripslashes(strip_tags($content[$i]));
-                    }
-                }
-                submitMeta($post_id, 'th_show_content_warning_data', $new);
-            }
-        }
-
     }
 }
 
@@ -547,23 +569,23 @@ function tm_show_shortcode() {
     $data = "";
     //basic data
     if (isset($options['tm_show_warnings']) && $options['tm_show_warnings'] == 1){
-        $content = get_post_meta(get_the_ID(), 'th_show_content_warning_data', true);
+        $content = get_the_terms(get_the_ID(), 'content_warning');
         if (is_null( $content ) || empty($content)){
-            $data = $data . "<p> This show has no content warnings.</p>";
+            $data .= "<hr><p> This show has no content warnings.</p><hr>";
         } else {
-            $data = $data . '<p> This show\'s Content Warnings include:</p><p style="text-align: center !important;">';
+            $data .= '<hr><h5> This show\'s Content Warnings include:</h5><p>';
             foreach ( $content as $item) {
-                $data = $data . "<a href=\"" . get_post_permalink($item['warning'])."\">" . get_the_title($item['warning'], 'theatre_warning') . "</a>, ";
+                $data .= $item->name . ", " ;
             }
             $data = substr($data, 0, -2);
-            $data = $data . "</p>";
+            $data .= "</p><p>Please get in touch if you have any questions about our Content Warnings</p><hr>";
         }
     }
     $data =  $data ."<table><tbody>
             <tr><td>Playwright</td><td>" . $author . "</td></tr>
             <tr><td>Date</td><td>" . $start . $end . "</td></tr>";
     //cast data
-    $data = $data . "<tr><td>Cast</td><td><table><tbody>";
+    $data .= "<tr><td>Cast</td><td><table><tbody>";
     $casttext = "";
     if (is_null( $cast ) || empty($cast)){
         $casttext = "This show has no known cast";
@@ -571,20 +593,20 @@ function tm_show_shortcode() {
         if($useCast){
             foreach ( $cast as $actor => $role ) {
                 foreach ($role as $item){
-                    $casttext = $casttext . "<tr><td><a href=\"" . get_post_permalink($actor)."\">" . get_the_title($actor) . "</a> as " . $item . "</td></tr>";
+                    $casttext .= "<tr><td><a href=\"" . get_post_permalink($actor)."\">" . get_the_title($actor) . "</a> as " . $item . "</td></tr>";
                 }
             }
         } else {
             foreach ( $cast as $actor => $role ) {
                 foreach ($role as $item){
-                    $casttext = $casttext . "<tr><td>" . $actor . " as " . $item . "</td></tr>";
+                    $casttext .= "<tr><td>" . $actor . " as " . $item . "</td></tr>";
                 }
             }
         }
     }
-    $data = $data . $casttext . "</tbody></table></td></tr>";
+    $data .= $casttext . "</tbody></table></td></tr>";
     //crew data
-    $data = $data . "<tr><td>Production Team</td><td><table><tbody>";
+    $data .= "<tr><td>Production Team</td><td><table><tbody>";
     $casttext = "";
     if (is_null( $crew ) || empty($crew)){
         $casttext = "This show has no known crew";
@@ -592,31 +614,31 @@ function tm_show_shortcode() {
         if ($useCast){
             foreach ( $crew as $pos => $job ) {
                 foreach ($job as $item){
-                    $casttext = $casttext . "<tr><td>" . $item . ": <a href=\"" . get_post_permalink($pos)."\">" . get_the_title($pos) . "</td></tr>";
+                    $casttext .= "<tr><td>" . $item . ": <a href=\"" . get_post_permalink($pos)."\">" . get_the_title($pos) . "</td></tr>";
                 }
             }
         } else {
             foreach ( $crew as $pos => $job ) {
                 foreach ($job as $item){
-                    $casttext = $casttext . "<tr><td>" . $item . ": " . $pos . "</td></tr>";
+                    $casttext .= "<tr><td>" . $item . ": " . $pos . "</td></tr>";
                 }
             }
         }
     }
-    $data = $data . $casttext . "</tbody></table></td></tr>";
+    $data .= $casttext . "</tbody></table></td></tr>";
     //Reviews
-    $data = $data . "<tr><td>Reviews</td><td><table><tbody>";
+    $data .= "<tr><td>Reviews</td><td><table><tbody>";
     $casttext = "";
     if (is_null( $reviews ) || empty($reviews)){
         $casttext = "This show has no reviews yet";
     } else {
         foreach ( $reviews as $field ) {
             foreach ($field as $item){
-                $casttext = $casttext . "<tr><td><a href=\"" . ((strpos($item['link'], 'http') === 0)? "" : "http://") . $item['link'] . "\"> ". $item['reviewer'] . " reviewed this!</a></td></tr>";
+                $casttext .= "<tr><td><a href=\"" . ((strpos($item['link'], 'http') === 0)? "" : "http://") . $item['link'] . "\"> ". $item['reviewer'] . " reviewed this!</a></td></tr>";
             }
         }
     }
-    $data = $data . $casttext . "</tbody></table></td></tr>";
+    $data .= $casttext . "</tbody></table></td></tr>";
     //return all
     return $data . "</tbody></table>";
 }

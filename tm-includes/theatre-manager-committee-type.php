@@ -45,6 +45,7 @@ if (isset($options['tm_committees']) && $options['tm_committees'] == 1){
         );
 
         register_post_type('theatre_committee', $args);
+        flush_rewrite_rules();
     }
     add_action('init', 'tm_committee_type');
 
@@ -95,7 +96,7 @@ if (isset($options['tm_committees']) && $options['tm_committees'] == 1){
      */
     function tm_committee_enter_title( $input ) {
         if ( 'theatre_committee' === get_post_type() ) {
-            return __( 'Committee Season', 'your_textdomain' );
+            return __( 'Committee Season', 'theatre-manager');
         }
 
         return $input;
