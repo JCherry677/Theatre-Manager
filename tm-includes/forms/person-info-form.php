@@ -1,10 +1,6 @@
 <?php
 //if people enabled, do stuff differently
-$options = get_option( 'tm_settings' );
-$people = false;
-if (isset($options['tm_person_email']) && $options['tm_person_email'] == 1){
-    $people = true;
-}?>
+$people = get_option( 'tm_person_email' ) == 1;?>
 <script type="text/javascript">
     jQuery(document).ready(function( $ ){
         $( '#add-row' ).on('click', function() {

@@ -3,8 +3,16 @@
 if ( ! defined( 'ABSPATH' )) die;
 
 //load file if committee enabled
-$options = get_option( 'tm_settings' );
-if (isset($options['tm_committees']) && $options['tm_committees'] == 1){
+$committees = get_option( 'tm_committees' );
+if (isset($committees) && $committees == 1){
+
+    //All calls
+    add_action('init', 'tm_role_type');
+    add_filter( 'post_updated_messages', 'tm_role_messages' );
+    add_filter( 'manage_theatre_role_posts_columns', 'tm_editor_role_columns' );
+    add_filter( 'enter_title_here', 'tm_role_enter_title' );
+    add_shortcode( 'role_data', 'tm_committee_role_shortcode' );
+
     /**
      * Custom Type - Committee Role
      * @since 0.7
@@ -94,38 +102,27 @@ if (isset($options['tm_committees']) && $options['tm_committees'] == 1){
     }
 
     //-----------------------------------------------------------------------------------------
-        /**
-         * Committee Role Shortcode
-         * Returns show data
-         * @since 0.5
-         */
-        function tm_committee_role_shortcode() {
-	        $options = get_option( 'tm_settings' );
-            $people = get_post_meta(get_the_ID(), 'th_committee_role_data', true);
-            //basic data
-            $committeestext = "<h3>Role History</h3>";
-            $committeestext .= "<table><thead><td><h6>Committee Year</h6></td><td><h6>Member</h6></td></thead><tbody>";
-            foreach ( $people as $year => $person ) {
-                $committeestext .= "<tr><td><a href=\"" . get_post_permalink($year)."\">" . get_the_title($year) . "</a></td>";
-                $committeestext .= "<td><table>";
-                foreach ( $person as $item ) {
-	                $committeestext .= "<tr></tr><td><a href=\"" . get_post_permalink( $item ) . "\">" . get_the_title( $item ) . "</a></td></tr>";
-                }
-                $committeestext .= "</table></td></tr>";
+    /**
+     * Committee Role Shortcode
+     * Returns show data
+     * @since 0.5
+     */
+    function tm_committee_role_shortcode()
+    {
+        $people = get_post_meta(get_the_ID(), 'th_committee_role_data', true);
+        //basic data
+        $committeestext = "<h3>Role History</h3>";
+        $committeestext .= "<table><thead><td><h6>Committee Year</h6></td><td><h6>Member</h6></td></thead><tbody>";
+        foreach ($people as $year => $person) {
+            $committeestext .= "<tr><td><a href=\"" . get_post_permalink($year) . "\">" . get_the_title($year) . "</a></td>";
+            $committeestext .= "<td><table>";
+            foreach ($person as $item) {
+                $committeestext .= "<tr></tr><td><a href=\"" . get_post_permalink($item) . "\">" . get_the_title($item) . "</a></td></tr>";
             }
-            $committeestext .= "</tbody></table>";
-            //return all
-            return $committeestext;
+            $committeestext .= "</table></td></tr>";
         }
-        
-
-    //all calls based on whether option enabled
-    $options = get_option( 'tm_settings' );
-    if (isset($options['tm_committees']) && $options['tm_committees'] == 1){
-        add_action('init', 'tm_role_type');
-        add_filter( 'post_updated_messages', 'tm_role_messages' );
-        add_filter( 'manage_theatre_role_posts_columns', 'tm_editor_role_columns' );
-        add_filter( 'enter_title_here', 'tm_role_enter_title' );
-        add_shortcode( 'role_data', 'tm_committee_role_shortcode' );
+        $committeestext .= "</tbody></table>";
+        //return all
+        return $committeestext;
     }
 } 

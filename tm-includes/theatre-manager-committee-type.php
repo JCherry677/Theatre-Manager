@@ -3,19 +3,15 @@
 if ( ! defined( 'ABSPATH' )) die;
 
 //load file if committee enabled
-$options = get_option( 'tm_settings' );
-if (isset($options['tm_committees']) && $options['tm_committees'] == 1){
+$committees = get_option( 'tm_committees' );
+if (isset($committees) && $committees == 1){
 
     /**
      * Custom Type - committee member
      * @since 0.4
      */
     function tm_committee_type(){
-	    $options = get_option( 'tm_settings' );
-	    $committee_block = false;
-	    if (isset($options['tm_block_committee']) && $options['tm_block_committee'] == 1) {
-		    $committee_block = true;
-	    }
+        $committee_block = get_option( 'tm_block_committee' ) == 1;
         $labels = array(
             'name'               => __( 'Past Committees', 'post type general name' ),
             'singular_name'      => __( 'Committee', 'post type singular name' ),

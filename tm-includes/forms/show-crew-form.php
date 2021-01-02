@@ -1,10 +1,6 @@
 <?php
 //if people enabled, do stuff differently
-$options = get_option( 'tm_settings' );
-$people = false;
-if (isset($options['tm_people']) && $options['tm_people'] == 1){
-    $people = true;
-}
+$people = (get_option( 'tm_settings' ) == 1);
 $names = tm_get_names_array();
 ?>
 <script type="text/javascript">

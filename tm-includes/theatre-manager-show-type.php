@@ -8,9 +8,9 @@
 if ( ! defined( 'ABSPATH' )) die;
 //create show type
 function tm_show_type(){
-    $options = get_option('tm_settings');
+    $show_block_option = get_option('tm_block_show');
 	$show_block = false;
-	if (isset($options['tm_block_show']) && $options['tm_block_show'] == 1) {
+	if (isset($show_block_option) && $show_block_option == 1) {
 		$show_block = true;
 	}
     $labels = array(
@@ -181,9 +181,8 @@ function create_show_taxonomies(){
      * @since 1.0
      * Replaces Custom post type
      */
-    $options = get_option('tm_settings');
-    error_log('[TM] Show Warnings: ' . $options['tm_show_warnings']);
-    if (isset($options['tm_show_warnings']) && $options['tm_show_warnings'] == 1) {
+    $warnings = get_option('tm_show_warnings');
+    if (isset($warnings) && $warnings == 1) {
         $labels = array(
             'name'                          => _x( 'Content Warnings', 'taxonomy general name' ),
             'singular_name'                 => _x( 'Content Warning', 'taxonomy singular name' ),
@@ -292,7 +291,6 @@ add_action('save_post', 'tm_meta_save', 10, 2);
 //Meta Box Controllers
 function tm_show_meta($post_id){
     if (get_post_type() == "theatre_show") {
-        $options = get_option('tm_settings');
         //show info
         add_meta_box(
             'theatre-manager-show-info', //ID
@@ -324,7 +322,8 @@ function tm_show_meta($post_id){
         );
 
         //Reviews
-        if (isset($options['tm_show_reviews']) && $options['tm_show_reviews'] == 1) {
+        $reviews = get_option('tm_show_reviews');
+        if (isset($reviews) && $reviews == 1) {
             add_meta_box(
                 'theatre-manager-show-review', //ID
                 'Reviews', //Title TODO: Internationalisation
@@ -451,7 +450,8 @@ function submitMeta(int $post_id, string $metaKey, array $data){
 //Saving Function
 function tm_meta_save($post_id, $post){
     if (get_post_type() == "theatre_show") {
-        $options = get_option('tm_settings');
+        $review = get_option('tm_show_reviews');
+        $people = get_option('tm_people');
         // Don't wanna save this now, right?
         if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
             error_log('[TM] Save Failed - Autosaving');
@@ -487,7 +487,7 @@ function tm_meta_save($post_id, $post){
             submitMeta($post_id, 'th_show_person_info_data', $new);
 
             //if enabled, update other people
-            if (isset($options['tm_people']) && $options['tm_people'] == 1) {
+            if (isset($people) && $people == 1) {
                 updateOtherMeta($post_id, 'th_show_person_info_data', 'th_show_roles', $new);
             }
         }
@@ -504,12 +504,12 @@ function tm_meta_save($post_id, $post){
             submitMeta($post_id, 'th_show_crew_info_data', $new);
 
             //if enabled, update other people
-            if (isset($options['tm_people']) && $options['tm_people'] == 1) {
+            if (isset($people) && $people == 1) {
                 updateOtherMeta($post_id, 'th_show_crew_info_data', 'th_crew_roles', $new);
             }
         }
 
-        if (isset($options['tm_show_reviews']) && $options['tm_show_reviews'] == 1) {
+        if (isset($review) && $review == 1) {
             if (isset($_POST['reviewer']) && isset($_POST['link'])) {
                 //get info
                 $reviewers = $_POST['reviewer'];
@@ -542,8 +542,8 @@ function tm_meta_save($post_id, $post){
  * @since 0.5
  */
 function tm_show_shortcode() {
-    $options = get_option( 'tm_settings' );
-    if (isset($options['tm_people']) && $options['tm_people'] == 1) {
+    $people = get_option( 'tm_people' );
+    if (isset($people) && $people == 1) {
         $useCast = true;
     } else {
         $useCast = false;
@@ -567,8 +567,10 @@ function tm_show_shortcode() {
     $crew = get_post_meta(get_the_ID(), 'th_show_crew_info_data', true);
     $reviews = get_post_meta(get_the_ID(), 'th_show_review_data');
     $data = "";
+
     //basic data
-    if (isset($options['tm_show_warnings']) && $options['tm_show_warnings'] == 1){
+    $warnings = get_option( 'tm_show_warnings' );
+    if (isset($warnings) && $warnings == 1){
         $content = get_the_terms(get_the_ID(), 'content_warning');
         if (is_null( $content ) || empty($content)){
             $data .= "<hr><p> This show has no content warnings.</p><hr>";
@@ -581,9 +583,12 @@ function tm_show_shortcode() {
             $data .= "</p><p>Please get in touch if you have any questions about our Content Warnings</p><hr>";
         }
     }
+
+    //General Info
     $data =  $data ."<table><tbody>
             <tr><td>Playwright</td><td>" . $author . "</td></tr>
             <tr><td>Date</td><td>" . $start . $end . "</td></tr>";
+
     //cast data
     $data .= "<tr><td>Cast</td><td><table><tbody>";
     $casttext = "";
@@ -605,6 +610,7 @@ function tm_show_shortcode() {
         }
     }
     $data .= $casttext . "</tbody></table></td></tr>";
+
     //crew data
     $data .= "<tr><td>Production Team</td><td><table><tbody>";
     $casttext = "";
@@ -626,19 +632,24 @@ function tm_show_shortcode() {
         }
     }
     $data .= $casttext . "</tbody></table></td></tr>";
+
     //Reviews
-    $data .= "<tr><td>Reviews</td><td><table><tbody>";
-    $casttext = "";
-    if (is_null( $reviews ) || empty($reviews)){
-        $casttext = "This show has no reviews yet";
-    } else {
-        foreach ( $reviews as $field ) {
-            foreach ($field as $item){
-                $casttext .= "<tr><td><a href=\"" . ((strpos($item['link'], 'http') === 0)? "" : "http://") . $item['link'] . "\"> ". $item['reviewer'] . " reviewed this!</a></td></tr>";
+    $reviews = get_option( 'tm_show_reviews' );
+    if (isset($reviews) && $reviews == 1) {
+        $data .= "<tr><td>Reviews</td><td><table><tbody>";
+        $casttext = "";
+        if (is_null($reviews) || empty($reviews)) {
+            $casttext = "This show has no reviews yet";
+        } else {
+            foreach ($reviews as $field) {
+                foreach ($field as $item) {
+                    $casttext .= "<tr><td><a href=\"" . ((strpos($item['link'], 'http') === 0) ? "" : "http://") . $item['link'] . "\"> " . $item['reviewer'] . " reviewed this!</a></td></tr>";
+                }
             }
         }
+        $data .= $casttext . "</tbody></table></td></tr>";
     }
-    $data .= $casttext . "</tbody></table></td></tr>";
+
     //return all
     return $data . "</tbody></table>";
 }
@@ -894,8 +905,8 @@ function tm_load_widgets() {
 }
 add_action( 'widgets_init', 'tm_load_widgets' );
 
-$options = get_option( 'tm_settings' );
-if (isset($options['tm_archive']) && $options['tm_archive'] == 1){
+$archive = get_option( 'tm_archive' );
+if (isset($archive) && $archive == 1 && is_multisite()){
     //------------------------------------------------------------------------------------------
     /** 
      * Add Bulk Action - move to site
@@ -980,6 +991,7 @@ if (isset($options['tm_archive']) && $options['tm_archive'] == 1){
     }
     add_action( 'admin_notices', 'tm_bulk_move_notice' );
 }
+
 /**
  * Update show post date when submitted
  * @since 0.8.1
@@ -1011,8 +1023,8 @@ function update_post_date( $data , $error ) {
 	// finally we return the $data and Wordpress will take it over from there
 	return $data;
 }
-$options = get_option( 'tm_settings' );
-if (isset($options['tm_people']) && $options['tm_people'] == 1) {
+$people = get_option( 'tm_people' );
+if (isset($people) && $people == 1) {
 	// Filters to setup the automatic change of the publish date
 	add_filter( 'wp_insert_post_data', 'update_post_date', 99, 2 );
 	add_filter( 'wp_update_post_data', 'update_post_date', 99, 2 );

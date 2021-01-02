@@ -9,11 +9,7 @@ if ( ! defined( 'ABSPATH' )) die;
 
 //create person type
 function tm_person_type(){
-	$options = get_option( 'tm_settings' );
-	$person_block = false;
-	if (isset($options['tm_block_person']) && $options['tm_block_person'] == 1) {
-		$person_block = true;
-	}
+    $person_block = get_option( 'tm_block_person' ) == 1;
     $labels = array(
         'name'               => __( 'Members', 'post type general name' ),
         'singular_name'      => __( 'Member', 'post type singular name' ),
@@ -265,8 +261,8 @@ function tm_person_shortcode() {
         $crewtext = $crewtext . "</tbody></table>";
     }
 
-    $options = get_option( 'tm_settings' );
-    if (isset($options['tm_committees']) && $options['tm_committees'] == 1){
+    $committees = get_option( 'tm_committees' );
+    if (isset($committees) && $committees == 1){
         //committees
         $committeestext = "<h2>Committees</h2>";
         if ($committees == ""){

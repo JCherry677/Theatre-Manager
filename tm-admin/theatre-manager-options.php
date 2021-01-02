@@ -16,8 +16,16 @@ function tm_add_admin_menu(  ) {
 }
 
 //create options
-function tm_settings_init(  ) { 
-	register_setting( 'pluginPage', 'tm_settings' );
+function tm_settings_init(  ) {
+    register_setting( 'pluginPage', 'tm_people');
+    register_setting( 'pluginPage', 'tm_show_warnings');
+    register_setting( 'pluginPage', 'tm_show_reviews');
+    register_setting( 'pluginPage', 'tm_committees');
+    register_setting( 'pluginPage', 'tm_person_email');
+    register_setting( 'pluginPage', 'tm_archive');
+    register_setting( 'pluginPage', 'tm_block_person');
+    register_setting( 'pluginPage', 'tm_block_show');
+    register_setting( 'pluginPage', 'tm_block_committee');
 	//Show Section
 	add_settings_section(
 		'tm_show_section',
@@ -121,65 +129,65 @@ function tm_settings_init(  ) {
 //option render
 //shows
 function tm_people_render(  ) { 
-	$options = get_option( 'tm_settings' );
+	$option = get_option( 'tm_people' );
 	?>
-	<input type='checkbox' name='tm_settings[tm_people]' <?php if (isset($options['tm_people'])) checked( $options['tm_people'], 1 ); ?> value='1'>
+	<input type='checkbox' name='tm_people' <?php if (isset($option)) checked( $option, 1 ); ?> value='1'>
 	<?php
 }
 function tm_show_warnings_render(  ) { 
-	$options = get_option( 'tm_settings' );
+	$option = get_option( 'tm_show_warnings' );
 	?>
-	<input type='checkbox' name='tm_settings[tm_show_warnings]' <?php if (isset($options['tm_show_warnings'])) checked( $options['tm_show_warnings'], 1 ); ?> value='1'>
+	<input type='checkbox' name='tm_show_warnings' <?php if (isset($option)) checked( $option, 1 ); ?> value='1'>
 	<?php
 }
 function tm_show_reviews_render(  ) {
-    $options = get_option( 'tm_settings' );
+    $option = get_option( 'tm_show_reviews' );
     ?>
-    <input type='checkbox' name='tm_settings[tm_show_reviews]' <?php if (isset($options['tm_show_reviews'])) checked( $options['tm_show_reviews'], 1 ); ?> value='1'>
+    <input type='checkbox' name='tm_show_reviews' <?php if (isset($option)) checked( $option, 1 ); ?> value='1'>
     <?php
 }
 
 //committees
 function tm_committee_render(  ) { 
-	$options = get_option( 'tm_settings' );
+	$option = get_option( 'tm_committees' );
 	?>
-	<input type='checkbox' name='tm_settings[tm_committees]' <?php if (isset($options['tm_committees'])) checked( $options['tm_committees'], 1 ); ?> value='1'>
+	<input type='checkbox' name='tm_committees' <?php if (isset($option)) checked( $option, 1 ); ?> value='1'>
 	<?php
 }
 function tm_email_render(  ) { 
-	$options = get_option( 'tm_settings' );
+	$option = get_option( 'tm_person_email' );
 	?>
-	<input type='checkbox' name='tm_settings[tm_person_email]' <?php if (isset($options['tm_person_email'])) checked( $options['tm_person_email'], 1 ); ?> value='1'>
+	<input type='checkbox' name='tm_person_email' <?php if (isset($option)) checked( $option, 1 ); ?> value='1'>
 	<?php
 }
 
 //multisite render
 if (is_multisite()){
 	function tm_archive_render(  ) {
-		$options = get_option( 'tm_settings' );
+		$options = get_option( 'tm_archive' );
 		?>
-        <input type='checkbox' name='tm_settings[tm_archive]' <?php if (isset($options['tm_archive'])) checked( $options['tm_archive'], 1 ); ?> value='1'>
+        <input type='checkbox' name='tm_archive' <?php if (isset($options)) checked( $options, 1 ); ?> value='1'>
 		<?php
 	}
 }
 
 //block editor
 function tm_block_member_render(  ) {
-	$options = get_option( 'tm_settings' );
+	$options = get_option( 'tm_block_person' );
 	?>
-    <input type='checkbox' name='tm_settings[tm_block_person]' <?php if (isset($options['tm_block_person'])) checked( $options['tm_block_person'], 1 ); ?> value='1'>
+    <input type='checkbox' name='tm_block_person' <?php if (isset($options)) checked( $options, 1 ); ?> value='1'>
 	<?php
 }
 function tm_block_show_render(  ) {
-	$options = get_option( 'tm_settings' );
+	$options = get_option( 'tm_block_show' );
 	?>
-    <input type='checkbox' name='tm_settings[tm_block_show]' <?php if (isset($options['tm_block_show'])) checked( $options['tm_block_show'], 1 ); ?> value='1'>
+    <input type='checkbox' name='tm_block_show' <?php if (isset($options)) checked( $options, 1 ); ?> value='1'>
 	<?php
 }
 function tm_block_committee_render(  ) {
-	$options = get_option( 'tm_settings' );
+	$options = get_option( 'tm_block_committee' );
 	?>
-    <input type='checkbox' name='tm_settings[tm_block_committee]' <?php if (isset($options['tm_block_committee'])) checked( $options['tm_block_committee'], 1 ); ?> value='1'>
+    <input type='checkbox' name='tm_block_committee' <?php if (isset($options)) checked( $options, 1 ); ?> value='1'>
 	<?php
 }
 
