@@ -294,7 +294,7 @@ function tm_show_meta($post_id){
         //show info
         add_meta_box(
             'theatre-manager-show-info', //ID
-            'Show Information', //Title TODO: Internationalisation
+            __('Show Information'), //Title
             'tm_show_info_box', //callback function
             'theatre_show', //post type
             'normal', //on-page location
@@ -304,7 +304,7 @@ function tm_show_meta($post_id){
         //Actors
         add_meta_box(
             'theatre-manager-show-person', //ID
-            'Cast', //Title TODO: Internationalisation
+            __('Cast'), //Title
             'tm_show_person_box', //callback function
             'theatre_show', //post type
             'normal', //on-page location
@@ -314,7 +314,7 @@ function tm_show_meta($post_id){
         //Crew
         add_meta_box(
             'theatre-manager-show-crew', //ID
-            'Production Team', //Title TODO: Internationalisation
+            __('Production Team'), //Title
             'tm_show_crew_box', //callback function
             'theatre_show', //post type
             'normal', //on-page location
@@ -326,7 +326,7 @@ function tm_show_meta($post_id){
         if (isset($reviews) && $reviews == 1) {
             add_meta_box(
                 'theatre-manager-show-review', //ID
-                'Reviews', //Title TODO: Internationalisation
+                __('Reviews'), //Title
                 'tm_show_review_box', //callback function
                 'theatre_show', //post type
                 'normal', //on-page location
@@ -542,12 +542,7 @@ function tm_meta_save($post_id, $post){
  * @since 0.5
  */
 function tm_show_shortcode() {
-    $people = get_option( 'tm_people' );
-    if (isset($people) && $people == 1) {
-        $useCast = true;
-    } else {
-        $useCast = false;
-    }
+    $useCast = get_option( 'tm_people' ) == 1;
     $author = get_post_meta(get_the_ID(), 'th_show_info_author', true);
     if ($author == "") $author =  "unknown";
     $start = implode(" ", get_post_meta(get_the_ID(), 'th_show_info_start_date'));
@@ -634,8 +629,8 @@ function tm_show_shortcode() {
     $data .= $casttext . "</tbody></table></td></tr>";
 
     //Reviews
-    $reviews = get_option( 'tm_show_reviews' );
-    if (isset($reviews) && $reviews == 1) {
+    $reviews_option = get_option( 'tm_show_reviews' );
+    if (isset($reviews_option) && $reviews_option == 1) {
         $data .= "<tr><td>Reviews</td><td><table><tbody>";
         $casttext = "";
         if (is_null($reviews) || empty($reviews)) {
@@ -919,7 +914,7 @@ if (isset($archive) && $archive == 1 && is_multisite()){
             'number'        => 5,
         ))) {
             foreach( $sites as $site ) {
-                $bulk_array['move_to_'.$site->blog_id] = 'Move to "' .$site->blogname . '"';
+                $bulk_array['move_to_'.$site->blog_id] = 'Move to Site: ' . $site->blogname;
             }
         }
     
@@ -927,39 +922,108 @@ if (isset($archive) && $archive == 1 && is_multisite()){
     }
     add_filter('bulk_actions-edit-theatre_show', 'tm_move_show_action');
 
+    function tm_create_data_table($post_id): string
+    {
+        $useCast = get_option( 'tm_people' ) == 1;
+        $cast = get_post_meta($post_id, 'th_show_person_info_data', true);
+        $crew = get_post_meta($post_id, 'th_show_crew_info_data', true);
+        $reviews = get_post_meta($post_id, 'th_show_review_data');
+        $data = "<table><tbody>";
+        //cast data
+        $data .= "<tr><td>Cast</td><td><table><tbody>";
+        $casttext = "";
+        if (is_null( $cast ) || empty($cast)){
+            $casttext = "This show has no known cast";
+        } else {
+            if($useCast){
+                foreach ( $cast as $actor => $role ) {
+                    foreach ($role as $item){
+                        $casttext .= "<tr><td><a href=\"" . get_post_permalink($actor)."\">" . get_the_title($actor) . "</a> as " . $item . "</td></tr>";
+                    }
+                }
+            } else {
+                foreach ( $cast as $actor => $role ) {
+                    foreach ($role as $item){
+                        $casttext .= "<tr><td>" . $actor . " as " . $item . "</td></tr>";
+                    }
+                }
+            }
+        }
+        $data .= $casttext . "</tbody></table></td></tr>";
+
+        //crew data
+        $data .= "<tr><td>Production Team</td><td><table><tbody>";
+        $casttext = "";
+        if (is_null( $crew ) || empty($crew)){
+            $casttext = "This show has no known crew";
+        } else {
+            if ($useCast){
+                foreach ( $crew as $pos => $job ) {
+                    foreach ($job as $item){
+                        $casttext .= "<tr><td>" . $item . ": <a href=\"" . get_post_permalink($pos)."\">" . get_the_title($pos) . "</td></tr>";
+                    }
+                }
+            } else {
+                foreach ( $crew as $pos => $job ) {
+                    foreach ($job as $item){
+                        $casttext .= "<tr><td>" . $item . ": " . $pos . "</td></tr>";
+                    }
+                }
+            }
+        }
+        $data .= $casttext . "</tbody></table></td></tr>";
+
+        //return all
+        return $data . "</tbody></table>";
+    }
+
     function tm_bulk_move_show_handler($redirect, $doaction, $object_ids){
         // we need query args to display correct admin notices
         $redirect = remove_query_arg( array( 'tm_posts_moved', 'tm_blogid' ), $redirect );
     
         // our actions begin with "move_to_", so let's check if it is a target action
-    if( strpos( $doaction, "move_to_" ) === 0 ) {
+        if( strpos( $doaction, "move_to_" ) === 0 ) {
             $blog_id = str_replace( "move_to_", "", $doaction );
 
             foreach ( $object_ids as $post_id ) {
+                $taxonomies_terms = array();
                 // get the original post object as an array
                 $post = get_post( $post_id, ARRAY_A );
-                $taxonomies = get_object_taxonomies( $post['theatre_show'] );
+
+                //TODO complete todo below and remove this line!
+                $post['post_content'] .= "<!-- wp:paragraph --><p>The data below has been moved to the archive site recently and will be removed soon.</p>". tm_create_data_table($post_id) . "<!-- /wp:paragraph -->";
+
+                $taxonomies = get_object_taxonomies('theatre_show');
+
                 foreach ( $taxonomies as $taxonomy ) {
-                    $post_terms = wp_get_object_terms( $post_id, $taxonomy, array('fields' => 'slugs') );
+                    $taxonomies_terms[$taxonomy] = wp_get_object_terms( $post_id, $taxonomy, array('fields' => 'slugs') );
                 }
+
                 // get all the post meta
                 $data = get_post_custom($post_id);
+
                 // empty ID field, to tell WordPress to create a new post, not update an existing one
                 $post['ID'] = '';
 
-                switch_to_blog( $blog_id );
+               switch_to_blog( $blog_id );
 
                 // insert the post
                 $inserted_post_id = wp_insert_post($post); // insert the post
                 // update post terms
                 foreach ( $taxonomies as $taxonomy ) {
-                    wp_set_object_terms( $inserted_post_id, $post_terms, $taxonomy, false );
+                    wp_set_object_terms( $inserted_post_id, $taxonomies_terms[$taxonomy], $taxonomy, false );
                 }
                 // add post meta
                 foreach ( $data as $key => $values) {
-                    // if you do not want weird redirects
-                    if( $key == '_wp_old_slug' ) {
+                    error_log('[TM] ' . $key);
+                    // These keys are blog relevant and should'nt be copied
+                    if( $key == '_wp_old_slug' || $key == '_edit_lock' || $key == '_edit_last') {
                         continue;
+                    }
+                    //These plugin specific keys have to be handled differently
+                    if ($key == 'th_show_crew_info_data' || $key == 'th_show_person_info_data') {
+                        //TODO make this post meta import properly
+                        continue; //ATM they are ignored and added as a table (see above)
                     }
                     foreach ($values as $value) {
                         add_post_meta( $inserted_post_id, $key, $value );
