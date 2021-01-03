@@ -215,7 +215,7 @@ function tm_person_shortcode() {
     $info = get_post_meta(get_the_ID(), 'th_person_info_data');
     $shows = get_post_meta(get_the_ID(), 'th_show_roles')[0];
     $crews = get_post_meta(get_the_ID(), 'th_crew_roles')[0];
-    $committees = get_post_meta(get_the_ID(), 'th_committee_roles')[0];
+    $committees = get_post_meta(get_the_ID(), 'th_committee_roles');
 
     //basic data
     $degreetext = "<h2>Courses</h2>";
@@ -228,6 +228,8 @@ function tm_person_shortcode() {
             }
         }
     }
+
+    error_log('[TM]' . serialize($shows));
 
     //show - cast
     $casttext = "<h2>Shows</h2><h3>Cast</h3>";
@@ -261,13 +263,14 @@ function tm_person_shortcode() {
         $crewtext = $crewtext . "</tbody></table>";
     }
 
-    $committees = get_option( 'tm_committees' );
-    if (isset($committees) && $committees == 1){
+    $committees_option = get_option( 'tm_committees' );
+    if (isset($committees_option) && $committees_option == 1){
         //committees
         $committeestext = "<h2>Committees</h2>";
-        if ($committees == ""){
+        if ($committees == null){
             $committeestext = $committeestext . "<p>" . $name ." has not been on a committee</p>";
         } else {
+            $committees = $committees[0];
             $committeestext = $committeestext . "<table><thead><td><h6>Committee Period</h6></td><td><h6>Role</h6></td></thead><tbody>";
             foreach($committees as $committee => $role){
                 $committeestext = $committeestext . "<tr><td><a href=\"" . get_post_permalink($committee)."\">" . get_the_title($committee) . "</a></td><td><table><tbody>";

@@ -13,7 +13,7 @@ if (isset($committees) && $committees == 1){
     function tm_committee_type(){
         $committee_block = get_option( 'tm_block_committee' ) == 1;
         $labels = array(
-            'name'               => __( 'Past Committees', 'post type general name' ),
+            'name'               => __( 'Committees', 'post type general name' ),
             'singular_name'      => __( 'Committee', 'post type singular name' ),
             'add_new'            => __( 'Add New', 'Committee' ),
             'add_new_item'       => __( 'Add New Committee' ),

@@ -1,6 +1,6 @@
 <?php
 //if people enabled, do stuff differently
-$people = get_option( 'tm_committee_people' ) == 1;
+$committee_people = get_option( 'tm_committee_people' ) == 1;
 $names = tm_get_names_array();
 $roles = tm_get_roles_array();
 ?>
@@ -64,7 +64,7 @@ $roles = tm_get_roles_array();
 </style>
 <div class="th_show_person_info">
     <div class="th_show_person_info_field">
-        <p style="font-weight: bold;"><?php if (isset($committee_people) && $committee_people == 1) { ?>Members and <?php } ?>Roles must be added first before adding them to a show!</p>
+        <p style="font-weight: bold;">Members and Roles must be added first before adding them to a committee!</p>
         <table id="repeatable-fieldset-one" width="100%">
             <thead>
                 <tr>

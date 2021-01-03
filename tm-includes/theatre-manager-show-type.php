@@ -404,21 +404,25 @@ function createArrays(int $itemCount, array $people, array $roles): array
  * @param $roleData array $person=>$role pairs of updated roles
  */
 function updateOtherMeta(int $post_id, string $metaKey, string $roleKey, array $roleData){
+    error_log('[TM]['.$post_id.']['. $metaKey . ']['. $roleKey . '] ' . serialize($roleData));
+
     //save details in person metadata
     foreach ($roleData as $person => $role){
         //get person's old roles
         $roles = get_post_meta($person, $roleKey, true);
-        if (empty($old_roles)){
+        if (empty($roles)){
             $roles = array();
         }
         $roles[$post_id] = $role;
+        error_log('[TM]['.$person.']['. $roleKey . '] ' . serialize($roles));
+        error_log(gettype(serialize($roles)));
         update_post_meta($person, $roleKey, $roles);
     }
 
     //remove any old people
-    $current = get_post_meta($post_id, $metaKey, true);
-    foreach ($current as $person => $role){
-        if (!(in_array($person, $roleData))){
+    $old = get_post_meta($post_id, $metaKey, true);
+    foreach ($old as $person => $role){
+        if (!(in_array($person, array_keys ($roleData)))){
             $person_new = array();
             $person_old = get_post_meta($person, $roleKey, true);
             foreach ($person_old as $show => $showRole){
@@ -560,7 +564,7 @@ function tm_show_shortcode() {
     }
     $cast = get_post_meta(get_the_ID(), 'th_show_person_info_data', true);
     $crew = get_post_meta(get_the_ID(), 'th_show_crew_info_data', true);
-    $reviews = get_post_meta(get_the_ID(), 'th_show_review_data');
+    $reviews = get_post_meta(get_the_ID(), 'th_show_review_data', true);
     $data = "";
 
     //basic data
@@ -637,9 +641,7 @@ function tm_show_shortcode() {
             $casttext = "This show has no reviews yet";
         } else {
             foreach ($reviews as $field) {
-                foreach ($field as $item) {
-                    $casttext .= "<tr><td><a href=\"" . ((strpos($item['link'], 'http') === 0) ? "" : "http://") . $item['link'] . "\"> " . $item['reviewer'] . " reviewed this!</a></td></tr>";
-                }
+                $casttext .= "<tr><td><a href=\"" . ((strpos($field['link'], 'http') === 0) ? "" : "http://") . $field['link'] . "\"> " . $field['reviewer'] . " reviewed this!</a></td></tr>";
             }
         }
         $data .= $casttext . "</tbody></table></td></tr>";

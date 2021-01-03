@@ -199,13 +199,13 @@ function tm_show_section_callback(  ) {
 }
 function tm_committee_section_callback(  ) {
 	echo __( '<p>Enable Committee Features of the plugin</p>', 'theatre-manager' );
-	echo __( '<p>If Members are enabled for committees, members must be registered before they can be added to a committee</p>', 'theatre-manager');
+	echo __( '<p>Members must be registered before they can be added to a committee</p>', 'theatre-manager');
 }
 function tm_archive_section_callback(  ) { 
-	echo __( '<p>In a multisite setup, this allows you to export shows to a second "archive" site</p>', 'theatre-manager' );
+	echo __( '<p>In a multisite setup, this allows you to copy shows to other sites on the network</p>', 'theatre-manager' );
 
 	if (is_multisite()){
-		echo __( '<p>This should be enabled on the main site and NOT the archive site</p>', 'theatre-manager' );
+		echo __( '<p>Generally, this should be enabled on the main site and NOT the archive site</p>', 'theatre-manager' );
 	} else {
 		echo __( '<p>Your wordpress installation is not multisite-ready, and so cannot use this feature.</p>', 'theatre-manager' );
 	}
