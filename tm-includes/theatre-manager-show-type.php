@@ -991,7 +991,7 @@ if (isset($archive) && $archive == 1 && is_multisite()){
                 $post = get_post( $post_id, ARRAY_A );
 
                 //TODO complete todo below and remove this line!
-                $post['post_content'] .= "<!-- wp:paragraph --><p>The data below has been moved to the archive site recently and will be removed soon.</p>". tm_create_data_table($post_id) . "<!-- /wp:paragraph -->";
+                $post['post_content'] .= "<p>The data below has been moved to the archive site recently and will be removed soon.</p>". tm_create_data_table($post_id);
 
                 $taxonomies = get_object_taxonomies('theatre_show');
 
@@ -1002,21 +1002,62 @@ if (isset($archive) && $archive == 1 && is_multisite()){
                 // get all the post meta
                 $data = get_post_custom($post_id);
 
+                //Get thumbnail image
+                $post_thumbnail_id = get_post_thumbnail_id($post_id);
+                $image_url = wp_get_attachment_image_src($post_thumbnail_id, 'full');
+                $image_url = $image_url[0];
+
                 // empty ID field, to tell WordPress to create a new post, not update an existing one
                 $post['ID'] = '';
 
+                //Move to the other blog
                switch_to_blog( $blog_id );
 
                 // insert the post
                 $inserted_post_id = wp_insert_post($post); // insert the post
+
+                // Add Featured Image to Post
+                $upload_dir = wp_upload_dir(); // Set upload folder
+                $image_data = file_get_contents($image_url); // Get image data
+                $filename   = basename($image_url); // Create image file name
+                // Check folder permission and define file location
+                if( wp_mkdir_p( $upload_dir['path'] ) ) {
+                    $file = $upload_dir['path'] . '/' . $filename;
+                } else {
+                    $file = $upload_dir['basedir'] . '/' . $filename;
+                }
+                // Create the image  file on the server
+                file_put_contents( $file, $image_data );
+                // Check image file type
+                $wp_filetype = wp_check_filetype( $filename, null );
+                // Set attachment data
+                $attachment = array(
+                    'post_mime_type' => $wp_filetype['type'],
+                    'post_title'     => sanitize_file_name( $filename ),
+                    'post_content'   => '',
+                    'post_status'    => 'inherit'
+                );
+                // Create the attachment
+                $attach_id = wp_insert_attachment( $attachment, $file, $post_id );
+                // Include image.php
+                require_once(ABSPATH . 'wp-admin/includes/image.php');
+                // Define attachment metadata
+                $attach_data = wp_generate_attachment_metadata( $attach_id, $file );
+                // Assign metadata to attachment
+                wp_update_attachment_metadata( $attach_id, $attach_data );
+                // And finally assign featured image to post
+                set_post_thumbnail( $inserted_post_id, $attach_id );
+
+
                 // update post terms
                 foreach ( $taxonomies as $taxonomy ) {
                     wp_set_object_terms( $inserted_post_id, $taxonomies_terms[$taxonomy], $taxonomy, false );
                 }
+
                 // add post meta
                 foreach ( $data as $key => $values) {
                     error_log('[TM] ' . $key);
-                    // These keys are blog relevant and should'nt be copied
+                    // These keys are blog relevant and shouldn't be copied
                     if( $key == '_wp_old_slug' || $key == '_edit_lock' || $key == '_edit_last') {
                         continue;
                     }
@@ -1029,6 +1070,7 @@ if (isset($archive) && $archive == 1 && is_multisite()){
                         add_post_meta( $inserted_post_id, $key, $value );
                     }
                 }
+
                 restore_current_blog();
 
                 wp_delete_post( $post_id );
